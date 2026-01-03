@@ -1,8 +1,8 @@
 import Link from "next/link"
 import Image from "next/image"
 
-// Book purchase URL - Update this with your actual purchase link
-const BOOK_PURCHASE_URL = process.env.NEXT_PUBLIC_BOOK_PURCHASE_URL || "https://www.amazon.com/dp/YOUR_BOOK_ISBN"
+// Book purchase URL
+const BOOK_PURCHASE_URL = process.env.NEXT_PUBLIC_BOOK_PURCHASE_URL || "https://www.amazon.com/START-SMART-Entrepreneurs-Frameworks-need/dp/1300734477"
 
 export default function Home() {
   return (
