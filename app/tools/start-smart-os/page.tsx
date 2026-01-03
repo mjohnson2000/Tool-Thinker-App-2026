@@ -17,6 +17,7 @@ export default function StartSmartOSPage() {
   const [loading, setLoading] = useState(true)
   const [newProjectName, setNewProjectName] = useState("")
   const [isCreating, setIsCreating] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     loadProjects()
@@ -24,11 +25,37 @@ export default function StartSmartOSPage() {
 
   async function loadProjects() {
     try {
+      setError(null)
       const res = await fetch("/api/projects")
       const data = await res.json()
-      setProjects(data)
-    } catch (error) {
+      
+      // Check if response contains an error
+      if (data.error) {
+        console.error("API Error:", data.error)
+        setError(data.error)
+        setProjects([]) // Set empty array on error
+        return
+      }
+      
+      // Check HTTP status
+      if (!res.ok) {
+        setError(data.error || "Failed to load projects")
+        setProjects([])
+        return
+      }
+      
+      // Ensure data is an array
+      if (Array.isArray(data)) {
+        setProjects(data)
+      } else {
+        console.error("Unexpected response format:", data)
+        setError("Unexpected response format")
+        setProjects([])
+      }
+    } catch (error: any) {
       console.error("Failed to load projects:", error)
+      setError(error.message || "Failed to load projects. Please check your connection.")
+      setProjects([]) // Set empty array on error
     } finally {
       setLoading(false)
     }
@@ -44,13 +71,28 @@ export default function StartSmartOSPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: newProjectName }),
       })
-      const project = await res.json()
+      
+      const data = await res.json()
+      
+      // Check if response contains an error
+      if (data.error) {
+        console.error("API Error:", data.error)
+        alert(`Failed to create project: ${data.error}`)
+        return
+      }
+      
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to create project")
+      }
+      
+      const project = data
       setProjects([...projects, project])
       setNewProjectName("")
       // Navigate to project
       window.location.href = `/project/${project.id}/overview`
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to create project:", error)
+      alert(`Failed to create project: ${error.message || "Unknown error"}`)
     } finally {
       setIsCreating(false)
     }
@@ -91,14 +133,29 @@ export default function StartSmartOSPage() {
           </div>
         </div>
 
-        {projects.length === 0 ? (
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <p className="text-red-800 text-sm font-semibold mb-1">Error loading projects</p>
+            <p className="text-red-600 text-sm">{error}</p>
+            <button
+              onClick={loadProjects}
+              className="mt-2 text-sm text-red-800 underline hover:text-red-900"
+            >
+              Try again
+            </button>
+          </div>
+        )}
+
+        {!loading && !error && projects.length === 0 && (
           <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
             <p className="text-gray-500 mb-4">No projects yet</p>
             <p className="text-sm text-gray-400">
               Create your first project to get started
             </p>
           </div>
-        ) : (
+        )}
+
+        {projects.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {projects.map((project) => (
               <Link
