@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
 
     // Convert messages to OpenAI format
     const openAIMessages = messages.map((msg: { role: string; content: string }) => ({
-      role: msg.role === "user" ? "user" : "assistant",
+      role: (msg.role === "user" ? "user" : "assistant") as "user" | "assistant",
       content: msg.content,
     }))
 

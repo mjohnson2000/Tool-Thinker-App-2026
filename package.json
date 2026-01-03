@@ -6,7 +6,16 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "pm2:start": "pm2 start ecosystem.config.js",
+    "pm2:stop": "pm2 stop tool-thinker",
+    "pm2:restart": "pm2 restart tool-thinker",
+    "pm2:delete": "pm2 delete tool-thinker",
+    "pm2:logs": "pm2 logs tool-thinker",
+    "pm2:monit": "pm2 monit",
+    "pm2:save": "pm2 save",
+    "health-check": "node scripts/health-check.js",
+    "deploy": "bash scripts/deploy.sh"
   },
   "dependencies": {
     "@supabase/auth-helpers-nextjs": "^0.8.7",

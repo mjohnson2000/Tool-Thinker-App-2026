@@ -1,9 +1,5 @@
-// Database client setup
-// This is a placeholder - replace with your actual database client
-// Options: Supabase, Prisma, or direct Postgres
-
-// For now, we'll use a simple in-memory store for development
-// Replace this with actual database calls
+// Database client setup using Supabase
+import { supabase } from '@/lib/supabase/client'
 
 interface DbClient {
   // Projects
@@ -33,23 +29,6 @@ interface DbClient {
   logEvent: (userId: string, eventType: string, payload: Record<string, any>, projectId?: string) => Promise<any>
 }
 
-// In-memory store for development (replace with real DB)
-const memoryStore: {
-  projects: Map<string, any>
-  steps: Map<string, any>
-  stepInputs: Map<string, any>
-  stepOutputs: Map<string, any>
-  feedback: Map<string, any>
-  events: any[]
-} = {
-  projects: new Map(),
-  steps: new Map(),
-  stepInputs: new Map(),
-  stepOutputs: new Map(),
-  feedback: new Map(),
-  events: [],
-}
-
 function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
 }
@@ -61,38 +40,71 @@ export const db: DbClient = {
       user_id: userId,
       name,
       status: "draft",
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
     }
-    memoryStore.projects.set(project.id, project)
-    return project
+    const { data, error } = await supabase
+      .from('projects')
+      .insert(project)
+      .select()
+      .single()
+    
+    if (error) throw new Error(`Failed to create project: ${error.message}`)
+    return data
   },
 
   getProjects: async (userId: string) => {
-    return Array.from(memoryStore.projects.values()).filter(
-      (p) => p.user_id === userId
-    )
+    const { data, error } = await supabase
+      .from('projects')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+    
+    if (error) throw new Error(`Failed to fetch projects: ${error.message}`)
+    return data || []
   },
 
   getProjectById: async (projectId: string) => {
-    return memoryStore.projects.get(projectId) || null
+    const { data, error } = await supabase
+      .from('projects')
+      .select('*')
+      .eq('id', projectId)
+      .single()
+    
+    if (error) {
+      if (error.code === 'PGRST116') return null // Not found
+      throw new Error(`Failed to fetch project: ${error.message}`)
+    }
+    return data
   },
 
   updateProject: async (projectId: string, updates: Partial<any>) => {
-    const project = memoryStore.projects.get(projectId)
-    if (!project) throw new Error("Project not found")
-    const updated = { ...project, ...updates, updated_at: new Date().toISOString() }
-    memoryStore.projects.set(projectId, updated)
-    return updated
+    const { data, error } = await supabase
+      .from('projects')
+      .update({ ...updates, updated_at: new Date().toISOString() })
+      .eq('id', projectId)
+      .select()
+      .single()
+    
+    if (error) throw new Error(`Failed to update project: ${error.message}`)
+    if (!data) throw new Error("Project not found")
+    return data
   },
 
   getStep: async (projectId: string, stepKey: string) => {
-    const stepKey_ = `${projectId}-${stepKey}`
-    return memoryStore.steps.get(stepKey_) || null
+    const { data, error } = await supabase
+      .from('steps')
+      .select('*')
+      .eq('project_id', projectId)
+      .eq('step_key', stepKey)
+      .single()
+    
+    if (error) {
+      if (error.code === 'PGRST116') return null // Not found
+      throw new Error(`Failed to fetch step: ${error.message}`)
+    }
+    return data
   },
 
   createStep: async (projectId: string, stepKey: string) => {
-    const stepKey_ = `${projectId}-${stepKey}`
     const step = {
       id: generateId(),
       project_id: projectId,
@@ -101,51 +113,95 @@ export const db: DbClient = {
       started_at: null,
       completed_at: null,
     }
-    memoryStore.steps.set(stepKey_, step)
-    return step
+    const { data, error } = await supabase
+      .from('steps')
+      .insert(step)
+      .select()
+      .single()
+    
+    if (error) throw new Error(`Failed to create step: ${error.message}`)
+    return data
   },
 
   updateStepStatus: async (stepId: string, status: string, completedAt?: string) => {
-    // Find step by id in memory store
-    for (const [key, step] of memoryStore.steps.entries()) {
-      if (step.id === stepId) {
-        const updated = {
-          ...step,
-          status,
-          completed_at: completedAt || step.completed_at,
-          started_at: step.started_at || new Date().toISOString(),
-        }
-        memoryStore.steps.set(key, updated)
-        return updated
-      }
+    // First get the step to check if it exists
+    const { data: existingStep } = await supabase
+      .from('steps')
+      .select('*')
+      .eq('id', stepId)
+      .single()
+    
+    if (!existingStep) throw new Error("Step not found")
+    
+    const updates: any = {
+      status,
+      started_at: existingStep.started_at || new Date().toISOString(),
     }
-    throw new Error("Step not found")
+    
+    if (completedAt) {
+      updates.completed_at = completedAt
+    }
+    
+    const { data, error } = await supabase
+      .from('steps')
+      .update(updates)
+      .eq('id', stepId)
+      .select()
+      .single()
+    
+    if (error) throw new Error(`Failed to update step: ${error.message}`)
+    return data
   },
 
   upsertStepInputs: async (stepId: string, data: Record<string, any>) => {
-    const existing = memoryStore.stepInputs.get(stepId)
+    // Check if step_inputs exists for this step
+    const { data: existing } = await supabase
+      .from('step_inputs')
+      .select('*')
+      .eq('step_id', stepId)
+      .single()
+    
     if (existing) {
-      const updated = {
-        ...existing,
-        data,
-        updated_at: new Date().toISOString(),
-      }
-      memoryStore.stepInputs.set(stepId, updated)
+      // Update existing
+      const { data: updated, error } = await supabase
+        .from('step_inputs')
+        .update({ data, updated_at: new Date().toISOString() })
+        .eq('step_id', stepId)
+        .select()
+        .single()
+      
+      if (error) throw new Error(`Failed to update step inputs: ${error.message}`)
       return updated
+    } else {
+      // Create new
+      const newInput = {
+        id: generateId(),
+        step_id: stepId,
+        data,
+      }
+      const { data: created, error } = await supabase
+        .from('step_inputs')
+        .insert(newInput)
+        .select()
+        .single()
+      
+      if (error) throw new Error(`Failed to create step inputs: ${error.message}`)
+      return created
     }
-    const newInput = {
-      id: generateId(),
-      step_id: stepId,
-      data,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    }
-    memoryStore.stepInputs.set(stepId, newInput)
-    return newInput
   },
 
   getStepInputs: async (stepId: string) => {
-    return memoryStore.stepInputs.get(stepId) || null
+    const { data, error } = await supabase
+      .from('step_inputs')
+      .select('*')
+      .eq('step_id', stepId)
+      .single()
+    
+    if (error) {
+      if (error.code === 'PGRST116') return null // Not found
+      throw new Error(`Failed to fetch step inputs: ${error.message}`)
+    }
+    return data
   },
 
   createStepOutput: async (stepId: string, aiOutput: Record<string, any>, version: number) => {
@@ -155,28 +211,47 @@ export const db: DbClient = {
       ai_output: aiOutput,
       user_edited_output: null,
       version,
-      created_at: new Date().toISOString(),
     }
-    memoryStore.stepOutputs.set(stepId, output)
-    return output
+    const { data, error } = await supabase
+      .from('step_outputs')
+      .insert(output)
+      .select()
+      .single()
+    
+    if (error) throw new Error(`Failed to create step output: ${error.message}`)
+    return data
   },
 
   updateStepOutput: async (outputId: string, userEditedOutput: Record<string, any>) => {
-    for (const [key, output] of memoryStore.stepOutputs.entries()) {
-      if (output.id === outputId) {
-        const updated = {
-          ...output,
-          user_edited_output: userEditedOutput,
-        }
-        memoryStore.stepOutputs.set(key, updated)
-        return updated
-      }
+    const { data, error } = await supabase
+      .from('step_outputs')
+      .update({ 
+        user_edited_output: userEditedOutput,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', outputId)
+      .select()
+      .single()
+    
+    if (error) {
+      if (error.code === 'PGRST116') throw new Error("Output not found")
+      throw new Error(`Failed to update step output: ${error.message}`)
     }
-    throw new Error("Output not found")
+    return data
   },
 
   getStepOutput: async (stepId: string) => {
-    return memoryStore.stepOutputs.get(stepId) || null
+    const { data, error } = await supabase
+      .from('step_outputs')
+      .select('*')
+      .eq('step_id', stepId)
+      .single()
+    
+    if (error) {
+      if (error.code === 'PGRST116') return null // Not found
+      throw new Error(`Failed to fetch step output: ${error.message}`)
+    }
+    return data
   },
 
   addFeedback: async (stepId: string, ratingClarity: number, ratingUsefulness: number, notes?: string) => {
@@ -187,10 +262,15 @@ export const db: DbClient = {
       rating_usefulness: ratingUsefulness,
       notes: notes || null,
       outcome_signal: null,
-      created_at: new Date().toISOString(),
     }
-    memoryStore.feedback.set(stepId, feedback)
-    return feedback
+    const { data, error } = await supabase
+      .from('feedback')
+      .insert(feedback)
+      .select()
+      .single()
+    
+    if (error) throw new Error(`Failed to add feedback: ${error.message}`)
+    return data
   },
 
   logEvent: async (userId: string, eventType: string, payload: Record<string, any>, projectId?: string) => {
@@ -200,10 +280,15 @@ export const db: DbClient = {
       project_id: projectId || null,
       event_type: eventType,
       payload,
-      created_at: new Date().toISOString(),
     }
-    memoryStore.events.push(event)
-    return event
+    const { data, error } = await supabase
+      .from('events')
+      .insert(event)
+      .select()
+      .single()
+    
+    if (error) throw new Error(`Failed to log event: ${error.message}`)
+    return data
   },
 }
 

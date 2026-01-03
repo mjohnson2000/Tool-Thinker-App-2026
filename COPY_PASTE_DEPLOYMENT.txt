@@ -1,0 +1,70 @@
+# Copy and paste these commands into your Hostinger VPS terminal
+# Run them one by one, or copy the entire block
+
+# ============================================
+# COMPLETE DEPLOYMENT - COPY ALL BELOW
+# ============================================
+
+# 1. Update system
+apt update && apt upgrade -y
+
+# 2. Install Node.js 18
+curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
+apt install -y nodejs
+
+# 3. Install PM2
+npm install -g pm2
+
+# 4. Install Git
+apt install -y git
+
+# 5. Create app directory
+mkdir -p /var/www/tool-thinker
+cd /var/www/tool-thinker
+
+# 6. Clone repository
+git clone https://github.com/mjohnson2000/Tool-Thinker-App-2026.git .
+
+# 7. Create .env file
+cat > .env << 'EOF'
+NEXT_PUBLIC_SUPABASE_URL=https://dejhoudyhqjxbcnrixdd.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_agg_FhijhDhOMGwGP_w-6A_Vty1Qaq-
+OPENAI_API_KEY=your_openai_key_here
+OPENAI_MODEL=gpt-4o-mini
+NODE_ENV=production
+PORT=3000
+EOF
+
+# 8. Edit .env with your OpenAI key (IMPORTANT!)
+nano .env
+# Press Ctrl+X, then Y, then Enter to save
+
+# 9. Install dependencies
+npm install
+
+# 10. Build the app
+npm run build
+
+# 11. Start with PM2
+pm2 start ecosystem.config.js
+
+# 12. Save PM2 configuration
+pm2 save
+
+# 13. Set up auto-start on reboot
+pm2 startup
+# Copy and run the command it shows you
+
+# 14. Check status
+pm2 status
+
+# 15. Test health endpoint
+curl http://localhost:3000/api/health
+
+# ============================================
+# DEPLOYMENT COMPLETE!
+# ============================================
+
+# Optional: Set up Nginx reverse proxy
+# See HOSTINGER_DEPLOYMENT.md for Nginx setup
+
