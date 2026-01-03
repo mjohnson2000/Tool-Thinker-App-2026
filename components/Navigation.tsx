@@ -9,10 +9,19 @@ export function Navigation() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const pathname = usePathname()
   
-  // Close menu when route changes
+  // Close menu when route changes and scroll to top
   useEffect(() => {
     setIsMenuOpen(false)
+    // Scroll to top on route change
+    window.scrollTo({ top: 0, behavior: 'instant' })
   }, [pathname])
+  
+  // Helper function to handle link clicks
+  const handleLinkClick = () => {
+    setIsMenuOpen(false)
+    // Scroll to top immediately
+    window.scrollTo({ top: 0, behavior: 'instant' })
+  }
   
   const isActive = (path: string) => pathname === path
   const isToolsActive = pathname?.startsWith('/tools') || pathname === '/tools' || pathname === '/tools/frameworks' || pathname === '/consultation'
@@ -29,6 +38,7 @@ export function Navigation() {
           <div className="hidden md:flex items-center space-x-8">
             <Link 
               href="/" 
+              onClick={() => window.scrollTo({ top: 0, behavior: 'instant' })}
               className={`${isActive('/') ? 'text-gray-900 font-semibold border-b-2 border-gray-900' : 'text-gray-700'} hover:text-gray-900 pb-1`}
             >
               Home
@@ -51,14 +61,14 @@ export function Navigation() {
               </Link>
               <div className="absolute left-0 mt-2 w-48 bg-white rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
                 <div className="py-1">
-                  <Link href="/tools" className={`block px-4 py-2 text-sm hover:bg-gray-100 ${isActive('/tools') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>View All Tools</Link>
+                  <Link href="/tools" onClick={() => window.scrollTo({ top: 0, behavior: 'instant' })} className={`block px-4 py-2 text-sm hover:bg-gray-100 ${isActive('/tools') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>View All Tools</Link>
                   <div className="border-t border-gray-200 my-1"></div>
-                  <Link href="/tools/frameworks" className={`block px-4 py-2 text-sm hover:bg-gray-100 ${isActive('/tools/frameworks') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Framework Tools</Link>
-                  <Link href="/tools/framework-navigator" className={`block px-4 py-2 text-sm hover:bg-gray-100 ${isActive('/tools/framework-navigator') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Framework Navigator</Link>
-                  <Link href="/tools/business-model-generator" className={`block px-4 py-2 text-sm hover:bg-gray-100 ${isActive('/tools/business-model-generator') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Business Model Generator</Link>
-                  <Link href="/tools/start-smart-os" className={`block px-4 py-2 text-sm hover:bg-gray-100 ${isActive('/tools/start-smart-os') || pathname?.startsWith('/tools/start-smart-os') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Start Smart OS</Link>
-                  <Link href="/tools/templates" className={`block px-4 py-2 text-sm hover:bg-gray-100 ${isActive('/tools/templates') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Downloadable Templates</Link>
-                  <Link href="/consultation" className={`block px-4 py-2 text-sm hover:bg-gray-100 ${isActive('/consultation') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Free Consultation</Link>
+                  <Link href="/tools/frameworks" onClick={() => window.scrollTo({ top: 0, behavior: 'instant' })} className={`block px-4 py-2 text-sm hover:bg-gray-100 ${isActive('/tools/frameworks') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Framework Tools</Link>
+                  <Link href="/tools/framework-navigator" onClick={() => window.scrollTo({ top: 0, behavior: 'instant' })} className={`block px-4 py-2 text-sm hover:bg-gray-100 ${isActive('/tools/framework-navigator') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Framework Navigator</Link>
+                  <Link href="/tools/business-model-generator" onClick={() => window.scrollTo({ top: 0, behavior: 'instant' })} className={`block px-4 py-2 text-sm hover:bg-gray-100 ${isActive('/tools/business-model-generator') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Business Model Generator</Link>
+                  <Link href="/tools/start-smart-os" onClick={() => window.scrollTo({ top: 0, behavior: 'instant' })} className={`block px-4 py-2 text-sm hover:bg-gray-100 ${isActive('/tools/start-smart-os') || pathname?.startsWith('/tools/start-smart-os') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Start Smart OS</Link>
+                  <Link href="/tools/templates" onClick={() => window.scrollTo({ top: 0, behavior: 'instant' })} className={`block px-4 py-2 text-sm hover:bg-gray-100 ${isActive('/tools/templates') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Downloadable Templates</Link>
+                  <Link href="/consultation" onClick={() => window.scrollTo({ top: 0, behavior: 'instant' })} className={`block px-4 py-2 text-sm hover:bg-gray-100 ${isActive('/consultation') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Free Consultation</Link>
                   <a href="https://alphahustler.tech/" target="_blank" rel="noopener noreferrer" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                     Alpha Hustler <span className="text-xs">↗</span>
                   </a>
@@ -68,12 +78,14 @@ export function Navigation() {
 
             <Link 
               href="/blogs" 
+              onClick={() => window.scrollTo({ top: 0, behavior: 'instant' })}
               className={`${isActive('/blogs') ? 'text-gray-900 font-semibold border-b-2 border-gray-900' : 'text-gray-700'} hover:text-gray-900 pb-1`}
             >
               Blogs
             </Link>
             <Link 
               href="/about" 
+              onClick={() => window.scrollTo({ top: 0, behavior: 'instant' })}
               className={`${isActive('/about') ? 'text-gray-900 font-semibold border-b-2 border-gray-900' : 'text-gray-700'} hover:text-gray-900 pb-1`}
             >
               About Us
@@ -91,9 +103,9 @@ export function Navigation() {
               </button>
               <div className="absolute left-0 mt-2 w-48 bg-white rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
                 <div className="py-1">
-                  <Link href="/podcasts" className={`block px-4 py-2 text-sm hover:bg-gray-100 ${isActive('/podcasts') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Podcasts</Link>
-                  <Link href="/books" className={`block px-4 py-2 text-sm hover:bg-gray-100 ${isActive('/books') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Books & Resources</Link>
-                  <Link href="/contact" className={`block px-4 py-2 text-sm hover:bg-gray-100 ${isActive('/contact') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Contact Us</Link>
+                  <Link href="/podcasts" onClick={() => window.scrollTo({ top: 0, behavior: 'instant' })} className={`block px-4 py-2 text-sm hover:bg-gray-100 ${isActive('/podcasts') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Podcasts</Link>
+                  <Link href="/books" onClick={() => window.scrollTo({ top: 0, behavior: 'instant' })} className={`block px-4 py-2 text-sm hover:bg-gray-100 ${isActive('/books') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Books & Resources</Link>
+                  <Link href="/contact" onClick={() => window.scrollTo({ top: 0, behavior: 'instant' })} className={`block px-4 py-2 text-sm hover:bg-gray-100 ${isActive('/contact') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Contact Us</Link>
                 </div>
               </div>
             </div>
@@ -122,7 +134,7 @@ export function Navigation() {
           <div className="md:hidden py-4 space-y-2 border-t border-gray-200 bg-white">
             <Link 
               href="/" 
-              onClick={() => setIsMenuOpen(false)}
+              onClick={handleLinkClick}
               className={`block px-4 py-2 hover:bg-gray-100 ${isActive('/') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}
             >
               Home
@@ -130,7 +142,7 @@ export function Navigation() {
             <div className="px-4 py-2">
               <Link 
                 href="/tools"
-                onClick={() => setIsMenuOpen(false)}
+                onClick={handleLinkClick}
                 className={`block font-semibold px-4 py-2 rounded-md mb-2 ${
                   isToolsActive && pathname === '/tools' ? 'bg-gray-100 text-gray-900' : 'text-gray-900 hover:bg-gray-100'
                 }`}
@@ -138,28 +150,28 @@ export function Navigation() {
                 Tools
               </Link>
               <div className="pl-4 space-y-1">
-                <Link href="/tools" onClick={() => setIsMenuOpen(false)} className={`block py-2 hover:bg-gray-100 ${isActive('/tools') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>View All Tools</Link>
-                <Link href="/tools/frameworks" onClick={() => setIsMenuOpen(false)} className={`block py-2 hover:bg-gray-100 ${isActive('/tools/frameworks') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Framework Tools</Link>
-                <Link href="/tools/framework-navigator" onClick={() => setIsMenuOpen(false)} className={`block py-2 hover:bg-gray-100 ${isActive('/tools/framework-navigator') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Framework Navigator</Link>
-                <Link href="/tools/business-model-generator" onClick={() => setIsMenuOpen(false)} className={`block py-2 hover:bg-gray-100 ${isActive('/tools/business-model-generator') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Business Model Generator</Link>
-                <Link href="/tools/start-smart-os" onClick={() => setIsMenuOpen(false)} className={`block py-2 hover:bg-gray-100 ${isActive('/tools/start-smart-os') || pathname?.startsWith('/tools/start-smart-os') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Start Smart OS</Link>
-                <Link href="/tools/templates" onClick={() => setIsMenuOpen(false)} className={`block py-2 hover:bg-gray-100 ${isActive('/tools/templates') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Downloadable Templates</Link>
-                <Link href="/consultation" onClick={() => setIsMenuOpen(false)} className={`block py-2 hover:bg-gray-100 ${isActive('/consultation') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Free Consultation</Link>
-                <a href="https://alphahustler.tech/" target="_blank" rel="noopener noreferrer" onClick={() => setIsMenuOpen(false)} className="block py-2 text-gray-700 hover:bg-gray-100">
+                <Link href="/tools" onClick={handleLinkClick} className={`block py-2 hover:bg-gray-100 ${isActive('/tools') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>View All Tools</Link>
+                <Link href="/tools/frameworks" onClick={handleLinkClick} className={`block py-2 hover:bg-gray-100 ${isActive('/tools/frameworks') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Framework Tools</Link>
+                <Link href="/tools/framework-navigator" onClick={handleLinkClick} className={`block py-2 hover:bg-gray-100 ${isActive('/tools/framework-navigator') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Framework Navigator</Link>
+                <Link href="/tools/business-model-generator" onClick={handleLinkClick} className={`block py-2 hover:bg-gray-100 ${isActive('/tools/business-model-generator') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Business Model Generator</Link>
+                <Link href="/tools/start-smart-os" onClick={handleLinkClick} className={`block py-2 hover:bg-gray-100 ${isActive('/tools/start-smart-os') || pathname?.startsWith('/tools/start-smart-os') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Start Smart OS</Link>
+                <Link href="/tools/templates" onClick={handleLinkClick} className={`block py-2 hover:bg-gray-100 ${isActive('/tools/templates') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Downloadable Templates</Link>
+                <Link href="/consultation" onClick={handleLinkClick} className={`block py-2 hover:bg-gray-100 ${isActive('/consultation') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Free Consultation</Link>
+                <a href="https://alphahustler.tech/" target="_blank" rel="noopener noreferrer" onClick={handleLinkClick} className="block py-2 text-gray-700 hover:bg-gray-100">
                   Alpha Hustler <span className="text-xs">↗</span>
                 </a>
               </div>
             </div>
             <Link 
               href="/blogs" 
-              onClick={() => setIsMenuOpen(false)}
+              onClick={handleLinkClick}
               className={`block px-4 py-2 hover:bg-gray-100 ${isActive('/blogs') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}
             >
               Blogs
             </Link>
             <Link 
               href="/about" 
-              onClick={() => setIsMenuOpen(false)}
+              onClick={handleLinkClick}
               className={`block px-4 py-2 hover:bg-gray-100 ${isActive('/about') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}
             >
               About Us
@@ -171,9 +183,9 @@ export function Navigation() {
                 More
               </div>
               <div className="pl-4 space-y-1">
-                <Link href="/podcasts" onClick={() => setIsMenuOpen(false)} className={`block py-2 hover:bg-gray-100 ${isActive('/podcasts') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Podcasts</Link>
-                <Link href="/books" onClick={() => setIsMenuOpen(false)} className={`block py-2 hover:bg-gray-100 ${isActive('/books') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Books & Resources</Link>
-                <Link href="/contact" onClick={() => setIsMenuOpen(false)} className={`block py-2 hover:bg-gray-100 ${isActive('/contact') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Contact Us</Link>
+                <Link href="/podcasts" onClick={handleLinkClick} className={`block py-2 hover:bg-gray-100 ${isActive('/podcasts') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Podcasts</Link>
+                <Link href="/books" onClick={handleLinkClick} className={`block py-2 hover:bg-gray-100 ${isActive('/books') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Books & Resources</Link>
+                <Link href="/contact" onClick={handleLinkClick} className={`block py-2 hover:bg-gray-100 ${isActive('/contact') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Contact Us</Link>
               </div>
             </div>
           </div>
