@@ -2,19 +2,24 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Logo } from "@/components/Logo"
 
 export function Navigation() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const pathname = usePathname()
   
+  // Close menu when route changes
+  useEffect(() => {
+    setIsMenuOpen(false)
+  }, [pathname])
+  
   const isActive = (path: string) => pathname === path
   const isToolsActive = pathname?.startsWith('/tools') || pathname === '/tools' || pathname === '/tools/frameworks' || pathname === '/consultation'
   const isMoreActive = pathname === '/podcasts' || pathname === '/books' || pathname === '/contact'
 
   return (
-    <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
+    <nav className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
@@ -96,7 +101,10 @@ export function Navigation() {
 
           {/* Mobile Menu Button */}
           <button
-            className="md:hidden text-gray-700"
+            type="button"
+            aria-label="Toggle menu"
+            aria-expanded={isMenuOpen}
+            className="md:hidden text-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-900 rounded-md p-1"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
           >
             <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -111,9 +119,10 @@ export function Navigation() {
 
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="md:hidden py-4 space-y-2">
+          <div className="md:hidden py-4 space-y-2 border-t border-gray-200 bg-white">
             <Link 
               href="/" 
+              onClick={() => setIsMenuOpen(false)}
               className={`block px-4 py-2 hover:bg-gray-100 ${isActive('/') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}
             >
               Home
@@ -121,6 +130,7 @@ export function Navigation() {
             <div className="px-4 py-2">
               <Link 
                 href="/tools"
+                onClick={() => setIsMenuOpen(false)}
                 className={`block font-semibold px-4 py-2 rounded-md mb-2 ${
                   isToolsActive && pathname === '/tools' ? 'bg-gray-100 text-gray-900' : 'text-gray-900 hover:bg-gray-100'
                 }`}
@@ -128,26 +138,28 @@ export function Navigation() {
                 Tools
               </Link>
               <div className="pl-4 space-y-1">
-                <Link href="/tools" className={`block py-2 hover:bg-gray-100 ${isActive('/tools') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>View All Tools</Link>
-                <Link href="/tools/frameworks" className={`block py-2 hover:bg-gray-100 ${isActive('/tools/frameworks') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Framework Tools</Link>
-                <Link href="/tools/framework-navigator" className={`block py-2 hover:bg-gray-100 ${isActive('/tools/framework-navigator') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Framework Navigator</Link>
-                <Link href="/tools/business-model-generator" className={`block py-2 hover:bg-gray-100 ${isActive('/tools/business-model-generator') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Business Model Generator</Link>
-                <Link href="/tools/start-smart-os" className={`block py-2 hover:bg-gray-100 ${isActive('/tools/start-smart-os') || pathname?.startsWith('/tools/start-smart-os') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Start Smart OS</Link>
-                <Link href="/tools/templates" className={`block py-2 hover:bg-gray-100 ${isActive('/tools/templates') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Downloadable Templates</Link>
-                <Link href="/consultation" className={`block py-2 hover:bg-gray-100 ${isActive('/consultation') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Free Consultation</Link>
-                <a href="https://alphahustler.tech/" target="_blank" rel="noopener noreferrer" className="block py-2 text-gray-700 hover:bg-gray-100">
+                <Link href="/tools" onClick={() => setIsMenuOpen(false)} className={`block py-2 hover:bg-gray-100 ${isActive('/tools') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>View All Tools</Link>
+                <Link href="/tools/frameworks" onClick={() => setIsMenuOpen(false)} className={`block py-2 hover:bg-gray-100 ${isActive('/tools/frameworks') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Framework Tools</Link>
+                <Link href="/tools/framework-navigator" onClick={() => setIsMenuOpen(false)} className={`block py-2 hover:bg-gray-100 ${isActive('/tools/framework-navigator') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Framework Navigator</Link>
+                <Link href="/tools/business-model-generator" onClick={() => setIsMenuOpen(false)} className={`block py-2 hover:bg-gray-100 ${isActive('/tools/business-model-generator') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Business Model Generator</Link>
+                <Link href="/tools/start-smart-os" onClick={() => setIsMenuOpen(false)} className={`block py-2 hover:bg-gray-100 ${isActive('/tools/start-smart-os') || pathname?.startsWith('/tools/start-smart-os') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Start Smart OS</Link>
+                <Link href="/tools/templates" onClick={() => setIsMenuOpen(false)} className={`block py-2 hover:bg-gray-100 ${isActive('/tools/templates') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Downloadable Templates</Link>
+                <Link href="/consultation" onClick={() => setIsMenuOpen(false)} className={`block py-2 hover:bg-gray-100 ${isActive('/consultation') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Free Consultation</Link>
+                <a href="https://alphahustler.tech/" target="_blank" rel="noopener noreferrer" onClick={() => setIsMenuOpen(false)} className="block py-2 text-gray-700 hover:bg-gray-100">
                   Alpha Hustler <span className="text-xs">↗</span>
                 </a>
               </div>
             </div>
             <Link 
               href="/blogs" 
+              onClick={() => setIsMenuOpen(false)}
               className={`block px-4 py-2 hover:bg-gray-100 ${isActive('/blogs') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}
             >
               Blogs
             </Link>
             <Link 
               href="/about" 
+              onClick={() => setIsMenuOpen(false)}
               className={`block px-4 py-2 hover:bg-gray-100 ${isActive('/about') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}
             >
               About Us
@@ -159,9 +171,9 @@ export function Navigation() {
                 More
               </div>
               <div className="pl-4 space-y-1">
-                <Link href="/podcasts" className={`block py-2 hover:bg-gray-100 ${isActive('/podcasts') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Podcasts</Link>
-                <Link href="/books" className={`block py-2 hover:bg-gray-100 ${isActive('/books') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Books & Resources</Link>
-                <Link href="/contact" className={`block py-2 hover:bg-gray-100 ${isActive('/contact') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Contact Us</Link>
+                <Link href="/podcasts" onClick={() => setIsMenuOpen(false)} className={`block py-2 hover:bg-gray-100 ${isActive('/podcasts') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Podcasts</Link>
+                <Link href="/books" onClick={() => setIsMenuOpen(false)} className={`block py-2 hover:bg-gray-100 ${isActive('/books') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Books & Resources</Link>
+                <Link href="/contact" onClick={() => setIsMenuOpen(false)} className={`block py-2 hover:bg-gray-100 ${isActive('/contact') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Contact Us</Link>
               </div>
             </div>
           </div>
