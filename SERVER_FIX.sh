@@ -1,3 +1,13 @@
+#!/bin/bash
+# Complete fix for server deployment issues
+# Run this on your Hostinger server
+
+cd ~/tool-thinker
+
+echo "🔧 Fixing TypeScript errors..."
+
+# 1. Fix consultation chat route (complete file)
+cat > app/api/consultation/chat/route.ts << 'ENDOFFILE'
 import { NextRequest, NextResponse } from "next/server"
 import { OpenAI } from "openai"
 import type { ChatCompletionMessageParam } from "openai/resources/chat/completions"
@@ -63,4 +73,36 @@ Remember: You're having a chat, not giving a presentation. Make it feel like tal
     )
   }
 }
+ENDOFFILE
+
+# 2. Fix jsPDF import
+sed -i '1s/^/import type { jsPDF } from '\''jspdf'\''\n\n/' lib/templates/businessModelCanvas.ts
+
+echo "✅ Files fixed!"
+echo ""
+echo "🔨 Building app..."
+npm run build
+
+if [ $? -eq 0 ]; then
+    echo ""
+    echo "✅ Build successful!"
+    echo ""
+    echo "▶️  Starting with PM2..."
+    pm2 stop tool-thinker 2>/dev/null || true
+    pm2 delete tool-thinker 2>/dev/null || true
+    pm2 start ecosystem.config.js
+    pm2 save
+    
+    echo ""
+    echo "📊 Status:"
+    pm2 status
+    
+    echo ""
+    echo "🔗 Testing health endpoint..."
+    sleep 2
+    curl http://localhost:3000/api/health
+else
+    echo ""
+    echo "❌ Build failed. Check errors above."
+fi
 

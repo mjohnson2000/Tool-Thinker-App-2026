@@ -1,3 +1,5 @@
+import type { jsPDF } from 'jspdf'
+
 export function generateBusinessModelCanvasPDF(jsPDFClass: typeof jsPDF) {
   const doc = new jsPDFClass("landscape") // Use landscape orientation for better fit
   const pageWidth = doc.internal.pageSize.getWidth()
