@@ -7,8 +7,8 @@ export const metadata: Metadata = {
   title: "Tool Thinker - Tools That Help Founders Make Progress",
   description: "Tools That Help Founders Make Progress",
   icons: {
-    icon: '/icon.svg',
-    apple: '/icon.svg',
+    icon: '/icon.png',
+    apple: '/icon.png',
   },
 }
 

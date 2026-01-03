@@ -24,30 +24,30 @@ export default function AboutPage() {
         <div className="bg-white rounded-lg p-8 shadow-sm mb-8">
           <h2 className="text-3xl font-bold text-gray-900 mb-6">What We Offer</h2>
           <div className="space-y-6">
-            <div>
+            <Link href="/tools#framework-tools" className="block hover:bg-gray-50 p-4 rounded-lg transition -m-4">
               <h3 className="text-xl font-semibold text-gray-800 mb-2">Framework Tools</h3>
               <p className="text-gray-600">
                 Navigate and apply proven business frameworks like Business Model Canvas, Value Proposition Canvas, Jobs-to-be-Done, and more. Our Framework Navigator helps you find the right framework for your specific needs.
               </p>
-            </div>
-            <div>
+            </Link>
+            <Link href="/tools#generator-tools" className="block hover:bg-gray-50 p-4 rounded-lg transition -m-4">
               <h3 className="text-xl font-semibold text-gray-800 mb-2">Generator Tools</h3>
               <p className="text-gray-600">
                 AI-powered tools that help you generate business plans, models, and strategic documents. Save time and get professional results with our intelligent generators.
               </p>
-            </div>
-            <div>
+            </Link>
+            <Link href="/tools#template-tools" className="block hover:bg-gray-50 p-4 rounded-lg transition -m-4">
               <h3 className="text-xl font-semibold text-gray-800 mb-2">Template Tools</h3>
               <p className="text-gray-600">
                 Ready-to-use templates for various business needs. From planning documents to execution frameworks, we provide templates that you can customize for your startup.
               </p>
-            </div>
-            <div>
+            </Link>
+            <Link href="/tools#os-tools" className="block hover:bg-gray-50 p-4 rounded-lg transition -m-4">
               <h3 className="text-xl font-semibold text-gray-800 mb-2">OS Tools</h3>
               <p className="text-gray-600">
                 Comprehensive operating systems like Start Smart OS that guide you through your entire startup journey. These integrated tools provide step-by-step guidance from idea to launch.
               </p>
-            </div>
+            </Link>
           </div>
         </div>
 

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Image from "next/image"
 
 interface Video {
   id: string
@@ -244,8 +245,14 @@ export default function PodcastsPage() {
               {/* Video Header */}
               <div className="p-4 border-b border-gray-200 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gray-900 rounded-full flex items-center justify-center text-white font-bold">
-                    TT
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden bg-white border border-gray-200">
+                    <Image
+                      src="/logo.png"
+                      alt="Tool Thinker Logo"
+                      width={40}
+                      height={40}
+                      className="object-contain"
+                    />
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900 line-clamp-1">

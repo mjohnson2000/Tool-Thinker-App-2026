@@ -56,21 +56,21 @@ export default function FrameworksPage() {
             <div>
               <h3 className="text-xl font-bold text-gray-900 mb-4">Framework Package</h3>
               <div className="space-y-3">
-                <div className="bg-blue-600 text-white rounded-lg px-4 py-3 font-semibold text-center">
+                <Link href="/blogs/jobs-to-be-done-framework" className="block bg-gray-600 text-white rounded-lg px-4 py-3 font-semibold text-center hover:bg-gray-700 transition">
                   Jobs-to-be-done
-                </div>
-                <div className="bg-blue-600 text-white rounded-lg px-4 py-3 font-semibold text-center">
+                </Link>
+                <Link href="/blogs/value-proposition-canvas" className="block bg-gray-600 text-white rounded-lg px-4 py-3 font-semibold text-center hover:bg-gray-700 transition">
                   Value Proposition Canvas
-                </div>
-                <div className="bg-blue-600 text-white rounded-lg px-4 py-3 font-semibold text-center">
+                </Link>
+                <Link href="/blogs/business-model-canvas" className="block bg-gray-600 text-white rounded-lg px-4 py-3 font-semibold text-center hover:bg-gray-700 transition">
                   Business Model Canvas
-                </div>
-                <div className="bg-blue-600 text-white rounded-lg px-4 py-3 font-semibold text-center">
+                </Link>
+                <Link href="/blogs/lean-canvas" className="block bg-gray-600 text-white rounded-lg px-4 py-3 font-semibold text-center hover:bg-gray-700 transition">
                   Lean Canvas
-                </div>
-                <div className="bg-blue-600 text-white rounded-lg px-4 py-3 font-semibold text-center">
+                </Link>
+                <Link href="/blogs/swot-analysis" className="block bg-gray-600 text-white rounded-lg px-4 py-3 font-semibold text-center hover:bg-gray-700 transition">
                   SWOT Analysis
-                </div>
+                </Link>
               </div>
             </div>
           </div>
@@ -126,21 +126,21 @@ export default function FrameworksPage() {
             <div>
               <h3 className="text-xl font-bold text-gray-900 mb-4">Framework Package</h3>
               <div className="space-y-3">
-                <div className="bg-blue-600 text-white rounded-lg px-4 py-3 font-semibold text-center">
+                <Link href="/blogs/design-thinking" className="block bg-gray-600 text-white rounded-lg px-4 py-3 font-semibold text-center hover:bg-gray-700 transition">
                   Design Thinking
-                </div>
-                <div className="bg-blue-600 text-white rounded-lg px-4 py-3 font-semibold text-center">
+                </Link>
+                <Link href="/blogs/customer-journey" className="block bg-gray-600 text-white rounded-lg px-4 py-3 font-semibold text-center hover:bg-gray-700 transition">
                   Customer Journey
-                </div>
-                <div className="bg-blue-600 text-white rounded-lg px-4 py-3 font-semibold text-center">
+                </Link>
+                <Link href="/blogs/empathy-map" className="block bg-gray-600 text-white rounded-lg px-4 py-3 font-semibold text-center hover:bg-gray-700 transition">
                   Empathy Map
-                </div>
-                <div className="bg-blue-600 text-white rounded-lg px-4 py-3 font-semibold text-center">
+                </Link>
+                <Link href="/blogs/kano-model" className="block bg-gray-600 text-white rounded-lg px-4 py-3 font-semibold text-center hover:bg-gray-700 transition">
                   Kano Model
-                </div>
-                <div className="bg-blue-600 text-white rounded-lg px-4 py-3 font-semibold text-center">
+                </Link>
+                <Link href="/blogs/mvp" className="block bg-gray-600 text-white rounded-lg px-4 py-3 font-semibold text-center hover:bg-gray-700 transition">
                   MVP
-                </div>
+                </Link>
               </div>
             </div>
           </div>
@@ -195,21 +195,21 @@ export default function FrameworksPage() {
             <div>
               <h3 className="text-xl font-bold text-gray-900 mb-4">Framework Package</h3>
               <div className="space-y-3">
-                <div className="bg-blue-600 text-white rounded-lg px-4 py-3 font-semibold text-center">
+                <Link href="/blogs/product-market-fit" className="block bg-gray-600 text-white rounded-lg px-4 py-3 font-semibold text-center hover:bg-gray-700 transition">
                   Product Market Fit
-                </div>
-                <div className="bg-blue-600 text-white rounded-lg px-4 py-3 font-semibold text-center">
+                </Link>
+                <Link href="/blogs/growth-hacking" className="block bg-gray-600 text-white rounded-lg px-4 py-3 font-semibold text-center hover:bg-gray-700 transition">
                   Growth Hacking
-                </div>
-                <div className="bg-blue-600 text-white rounded-lg px-4 py-3 font-semibold text-center">
+                </Link>
+                <Link href="/blogs/okrs" className="block bg-gray-600 text-white rounded-lg px-4 py-3 font-semibold text-center hover:bg-gray-700 transition">
                   OKRs
-                </div>
-                <div className="bg-blue-600 text-white rounded-lg px-4 py-3 font-semibold text-center">
+                </Link>
+                <Link href="/blogs/marketing-funnel" className="block bg-gray-600 text-white rounded-lg px-4 py-3 font-semibold text-center hover:bg-gray-700 transition">
                   Marketing Funnel
-                </div>
-                <div className="bg-blue-600 text-white rounded-lg px-4 py-3 font-semibold text-center">
+                </Link>
+                <Link href="/blogs/risk-matrix" className="block bg-gray-600 text-white rounded-lg px-4 py-3 font-semibold text-center hover:bg-gray-700 transition">
                   Risk Matrix
-                </div>
+                </Link>
               </div>
             </div>
           </div>

@@ -1,4 +1,8 @@
 import Link from "next/link"
+import Image from "next/image"
+
+// Book purchase URL - Update this with your actual purchase link
+const BOOK_PURCHASE_URL = process.env.NEXT_PUBLIC_BOOK_PURCHASE_URL || "https://www.amazon.com/dp/YOUR_BOOK_ISBN"
 
 export default function Home() {
   return (
@@ -32,30 +36,30 @@ export default function Home() {
             <h2 className="text-4xl font-bold text-gray-900 mb-4">What We Offer</h2>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="bg-gray-50 rounded-lg p-6">
+            <Link href="/tools#framework-tools" className="bg-gray-50 rounded-lg p-6 hover:bg-gray-100 transition cursor-pointer">
               <h3 className="text-xl font-semibold text-gray-800 mb-3">Framework Tools</h3>
               <p className="text-gray-600 text-sm">
                 Navigate and apply proven business frameworks like Business Model Canvas, Value Proposition Canvas, Jobs-to-be-Done, and more. Our Framework Navigator helps you find the right framework for your specific needs.
               </p>
-            </div>
-            <div className="bg-gray-50 rounded-lg p-6">
+            </Link>
+            <Link href="/tools#generator-tools" className="bg-gray-50 rounded-lg p-6 hover:bg-gray-100 transition cursor-pointer">
               <h3 className="text-xl font-semibold text-gray-800 mb-3">Generator Tools</h3>
               <p className="text-gray-600 text-sm">
                 AI-powered tools that help you generate business plans, models, and strategic documents. Save time and get professional results with our intelligent generators.
               </p>
-            </div>
-            <div className="bg-gray-50 rounded-lg p-6">
+            </Link>
+            <Link href="/tools#template-tools" className="bg-gray-50 rounded-lg p-6 hover:bg-gray-100 transition cursor-pointer">
               <h3 className="text-xl font-semibold text-gray-800 mb-3">Template Tools</h3>
               <p className="text-gray-600 text-sm">
                 Ready-to-use templates for various business needs. From planning documents to execution frameworks, we provide templates that you can customize for your startup.
               </p>
-            </div>
-            <div className="bg-gray-50 rounded-lg p-6">
+            </Link>
+            <Link href="/tools#os-tools" className="bg-gray-50 rounded-lg p-6 hover:bg-gray-100 transition cursor-pointer">
               <h3 className="text-xl font-semibold text-gray-800 mb-3">OS Tools</h3>
               <p className="text-gray-600 text-sm">
                 Comprehensive operating systems like Start Smart OS that guide you through your entire startup journey. These integrated tools provide step-by-step guidance from idea to launch.
               </p>
-            </div>
+            </Link>
           </div>
         </div>
       </section>
@@ -110,16 +114,30 @@ export default function Home() {
               <p className="text-gray-600 mb-6 leading-relaxed">
                 Designed for aspiring entrepreneurs, first-time founders, and seasoned business owners alike, this book empowers you to make smarter decisions, mitigate risks, and unlock long-term success. Start Smart is your blueprint to building a thriving business in a structured, efficient, and impactful way.
               </p>
-              <Link
-                href="/books"
+              <a
+                href={BOOK_PURCHASE_URL}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="inline-block px-6 py-3 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition font-semibold"
               >
                 PURCHASE HERE!
-              </Link>
+              </a>
             </div>
-            <div className="bg-gray-100 rounded-lg p-8 text-center">
-              <div className="text-6xl mb-4">📚</div>
-              <p className="text-gray-600">Book Cover Placeholder</p>
+            <div className="flex justify-center items-center">
+              <div className="relative w-full max-w-xs sm:max-w-xs md:max-w-sm lg:max-w-sm">
+                <div className="relative aspect-[2/3] w-full overflow-hidden">
+                  <Image
+                    src="/book-cover.png"
+                    alt="START SMART - for Entrepreneurs book cover"
+                    fill
+                    className="rounded-lg shadow-xl object-cover object-top"
+                    sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 35vw, 28vw"
+                    priority
+                    quality={95}
+                    style={{ objectPosition: 'top' }}
+                  />
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -134,7 +152,7 @@ export default function Home() {
             <p className="text-lg mb-4">Thousands of entrepreneurs are starting smart</p>
           </div>
           <Link
-            href="/tools/start-smart-os"
+            href="/tools"
             className="inline-block px-8 py-4 bg-white text-gray-900 rounded-lg hover:bg-gray-100 transition text-lg font-semibold"
           >
             Get Started Today

@@ -31,18 +31,23 @@ export function Navigation() {
             
             {/* Tools Dropdown */}
             <div className="relative group">
-              <button className={`px-4 py-2 rounded-md flex items-center ${
-                isToolsActive 
-                  ? 'bg-gray-900 text-white hover:bg-gray-800' 
-                  : 'bg-gray-900 text-white hover:bg-gray-800'
-              }`}>
+              <Link 
+                href="/tools"
+                className={`px-4 py-2 rounded-md flex items-center ${
+                  isToolsActive 
+                    ? 'bg-gray-900 text-white hover:bg-gray-800' 
+                    : 'bg-gray-900 text-white hover:bg-gray-800'
+                }`}
+              >
                 Tools
                 <svg className="ml-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
-              </button>
+              </Link>
               <div className="absolute left-0 mt-2 w-48 bg-white rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
                 <div className="py-1">
+                  <Link href="/tools" className={`block px-4 py-2 text-sm hover:bg-gray-100 ${isActive('/tools') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>View All Tools</Link>
+                  <div className="border-t border-gray-200 my-1"></div>
                   <Link href="/tools/frameworks" className={`block px-4 py-2 text-sm hover:bg-gray-100 ${isActive('/tools/frameworks') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Framework Tools</Link>
                   <Link href="/tools/framework-navigator" className={`block px-4 py-2 text-sm hover:bg-gray-100 ${isActive('/tools/framework-navigator') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Framework Navigator</Link>
                   <Link href="/tools/business-model-generator" className={`block px-4 py-2 text-sm hover:bg-gray-100 ${isActive('/tools/business-model-generator') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Business Model Generator</Link>
@@ -114,12 +119,16 @@ export function Navigation() {
               Home
             </Link>
             <div className="px-4 py-2">
-              <div className={`font-semibold px-4 py-2 rounded-md mb-2 ${
-                isToolsActive ? 'bg-gray-800 text-white' : 'text-white bg-gray-900'
-              }`}>
+              <Link 
+                href="/tools"
+                className={`block font-semibold px-4 py-2 rounded-md mb-2 ${
+                  isToolsActive && pathname === '/tools' ? 'bg-gray-100 text-gray-900' : 'text-gray-900 hover:bg-gray-100'
+                }`}
+              >
                 Tools
-              </div>
+              </Link>
               <div className="pl-4 space-y-1">
+                <Link href="/tools" className={`block py-2 hover:bg-gray-100 ${isActive('/tools') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>View All Tools</Link>
                 <Link href="/tools/frameworks" className={`block py-2 hover:bg-gray-100 ${isActive('/tools/frameworks') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Framework Tools</Link>
                 <Link href="/tools/framework-navigator" className={`block py-2 hover:bg-gray-100 ${isActive('/tools/framework-navigator') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Framework Navigator</Link>
                 <Link href="/tools/business-model-generator" className={`block py-2 hover:bg-gray-100 ${isActive('/tools/business-model-generator') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Business Model Generator</Link>

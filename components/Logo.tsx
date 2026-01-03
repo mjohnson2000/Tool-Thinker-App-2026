@@ -2,13 +2,15 @@ import Link from "next/link"
 import { cn } from "@/lib/utils"
 import { LogoIcon } from "./LogoIcon"
 
+// Logo component interface
 interface LogoProps {
   className?: string
   showText?: boolean
   size?: "sm" | "md" | "lg"
+  variant?: "dark" | "light"
 }
 
-export function Logo({ className, showText = true, size = "md", variant = "dark" }: LogoProps & { variant?: "dark" | "light" }) {
+export function Logo({ className, showText = true, size = "md", variant = "dark" }: LogoProps) {
   const sizeMap = {
     sm: 32,
     md: 40,
