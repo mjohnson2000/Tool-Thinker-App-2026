@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useCallback } from "react"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -62,7 +62,7 @@ export default function ValuationCalculatorPage() {
   const [valuation, setValuation] = useState<Valuation | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  async function calculateValuation() {
+  const calculateValuation = useCallback(async () => {
     setIsCalculating(true)
     setError(null)
     setValuation(null)
@@ -96,7 +96,7 @@ export default function ValuationCalculatorPage() {
     } finally {
       setIsCalculating(false)
     }
-  }
+  }, [currentRevenue, revenueGrowthRate, marketSize, stage, industry, fundingAmount, comparableCompanies])
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-50 py-16">
