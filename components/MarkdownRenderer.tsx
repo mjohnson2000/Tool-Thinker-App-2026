@@ -19,7 +19,7 @@ export function MarkdownRenderer({ content, className = "" }: MarkdownRendererPr
     
     // Find bold first (to avoid conflicts with italic)
     const boldRegex = /\*\*(.+?)\*\*/g
-    let match
+    let match: RegExpExecArray | null
     while ((match = boldRegex.exec(text)) !== null) {
       tokens.push({
         type: 'bold',
@@ -31,6 +31,7 @@ export function MarkdownRenderer({ content, className = "" }: MarkdownRendererPr
     
     // Find code
     const codeRegex = /`([^`]+)`/g
+    match = null
     while ((match = codeRegex.exec(text)) !== null) {
       const isInsideBold = tokens.some(t => t.start < match.index && match.index + match[0].length < t.end)
       if (!isInsideBold) {
@@ -45,6 +46,7 @@ export function MarkdownRenderer({ content, className = "" }: MarkdownRendererPr
     
     // Find links
     const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g
+    match = null
     while ((match = linkRegex.exec(text)) !== null) {
       const isInsideOther = tokens.some(t => t.start < match.index && match.index + match[0].length < t.end)
       if (!isInsideOther) {
@@ -60,6 +62,7 @@ export function MarkdownRenderer({ content, className = "" }: MarkdownRendererPr
     
     // Find italic (single asterisk, not part of bold)
     const italicRegex = /\*([^*]+?)\*/g
+    match = null
     while ((match = italicRegex.exec(text)) !== null) {
       const isInsideOther = tokens.some(t => t.start < match.index && match.index + match[0].length < t.end)
       if (!isInsideOther) {
