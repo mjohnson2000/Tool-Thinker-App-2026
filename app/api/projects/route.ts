@@ -7,12 +7,12 @@ const MOCK_USER_ID = "user-1"
 export async function GET(req: NextRequest) {
   try {
     const projects = await db.getProjects(MOCK_USER_ID)
-    return NextResponse.json(projects)
+    // Always return an array, even if empty
+    return NextResponse.json(Array.isArray(projects) ? projects : [])
   } catch (error: any) {
-    return NextResponse.json(
-      { error: error.message || "Failed to fetch projects" },
-      { status: 500 }
-    )
+    console.error("Error fetching projects:", error)
+    // Return empty array instead of error object to prevent .map() errors
+    return NextResponse.json([], { status: 200 })
   }
 }
 

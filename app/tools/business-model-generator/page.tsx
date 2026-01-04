@@ -5,6 +5,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { jsPDF } from "jspdf"
+import { DisclaimerBanner } from "@/components/DisclaimerBanner"
 
 interface BusinessModel {
   business_idea: string
@@ -401,6 +402,8 @@ export default function BusinessModelGeneratorPage() {
                 </Button>
               </div>
             </div>
+
+            <DisclaimerBanner className="mt-8" />
           </div>
         )}
       </div>

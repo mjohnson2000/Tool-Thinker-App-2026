@@ -40,14 +40,21 @@ export function Footer() {
             <ul className="space-y-2 text-sm">
               <li><Link href="/tools/framework-navigator" className="hover:text-white">Framework Navigator</Link></li>
               <li><Link href="/tools/business-model-generator" className="hover:text-white">Business Model Generator</Link></li>
-              <li><Link href="/tools/start-smart-os" className="hover:text-white">Start Smart OS</Link></li>
+              <li><Link href="/tools/startup-plan-generator" className="hover:text-white">Startup Plan Generator</Link></li>
               <li><Link href="/tools/templates" className="hover:text-white">Templates</Link></li>
             </ul>
           </div>
         </div>
         
-        <div className="border-t border-gray-800 mt-8 pt-8 text-center text-sm">
-          <p>Copyright © {new Date().getFullYear()} All rights reserved. ToolThinker.com</p>
+        <div className="border-t border-gray-800 mt-8 pt-8">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm">
+            <div className="flex flex-wrap justify-center gap-4">
+              <Link href="/terms" className="hover:text-white">Terms of Service</Link>
+              <Link href="/privacy" className="hover:text-white">Privacy Policy</Link>
+              <Link href="/disclaimer" className="hover:text-white">Disclaimer</Link>
+            </div>
+            <p className="text-center">Copyright © {new Date().getFullYear()} All rights reserved. ToolThinker.com</p>
+          </div>
         </div>
       </div>
     </footer>

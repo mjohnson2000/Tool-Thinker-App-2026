@@ -1,0 +1,47 @@
+# Complete Quick Fix - Includes Scroll-to-Top
+# Run these commands on your server
+
+cd ~/tool-thinker
+
+# ============================================
+# OPTION 1: Pull from GitHub (BEST - if you pushed)
+# ============================================
+git pull origin main
+npm run build
+pm2 restart tool-thinker
+
+# ============================================
+# OPTION 2: Manual Fix (if git pull doesn't work)
+# ============================================
+
+# Step 1: Book URL
+sed -i 's|https://www.amazon.com/dp/YOUR_BOOK_ISBN|https://www.amazon.com/START-SMART-Entrepreneurs-Frameworks-need/dp/1300734477|g' app/page.tsx app/books/page.tsx
+
+# Step 2: Navigation - Use the complete fix script
+bash COMPLETE_SERVER_FIX.sh
+
+# OR manually edit Navigation.tsx:
+# 1. Change import to: import { useState, useEffect } from "react"
+# 2. Add after pathname:
+#    useEffect(() => {
+#      setIsMenuOpen(false)
+#      window.scrollTo({ top: 0, behavior: 'instant' })
+#    }, [pathname])
+#    
+#    const handleLinkClick = () => {
+#      setIsMenuOpen(false)
+#      window.scrollTo({ top: 0, behavior: 'instant' })
+#    }
+# 3. Replace all mobile menu onClick={() => setIsMenuOpen(false)} with onClick={handleLinkClick}
+# 4. Add onClick={() => window.scrollTo({ top: 0, behavior: 'instant' })} to desktop links
+
+# Step 3: Update Supabase in .env
+nano .env
+# Add/update:
+# NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+# NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_agg_FhijhDhOMGwGP_w-6A_Vty1Qaq-
+
+# Step 4: Rebuild
+npm run build
+pm2 restart tool-thinker
+

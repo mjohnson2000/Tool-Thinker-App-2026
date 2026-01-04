@@ -3,6 +3,8 @@
 import { useState, useRef, useEffect } from "react"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
+import { DisclaimerBanner } from "@/components/DisclaimerBanner"
+import { MarkdownRenderer } from "@/components/MarkdownRenderer"
 
 interface Message {
   role: "user" | "assistant"
@@ -90,30 +92,36 @@ export default function ConsultationPage() {
           </p>
         </div>
 
+        <DisclaimerBanner className="mb-8" />
+
         <div className="bg-white rounded-lg shadow-sm flex flex-col border border-gray-200" style={{ height: "600px" }}>
           {/* Messages Area */}
-          <div className="flex-1 overflow-y-auto p-6 space-y-6">
+          <div className="flex-1 overflow-y-auto p-6 space-y-4">
             {messages.map((message, idx) => (
               <div
                 key={idx}
-                className={`flex gap-3 ${message.role === "user" ? "justify-end" : "justify-start"}`}
+                className={`flex gap-3 items-start ${message.role === "user" ? "justify-end" : "justify-start"}`}
               >
                 {message.role === "assistant" && (
-                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gray-900 flex items-center justify-center text-white font-semibold text-sm">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gray-900 flex items-center justify-center text-white font-semibold text-sm mt-0.5">
                     AI
                   </div>
                 )}
                 <div
-                  className={`max-w-[75%] rounded-2xl px-4 py-3 ${
+                  className={`max-w-[80%] rounded-2xl px-4 py-3 ${
                     message.role === "user"
                       ? "bg-gray-900 text-white rounded-br-sm"
-                      : "bg-gray-100 text-gray-900 rounded-bl-sm"
+                      : "bg-gray-100 text-gray-900 rounded-bl-sm border border-gray-200 shadow-sm"
                   }`}
                 >
-                  <p className="whitespace-pre-wrap leading-relaxed">{message.content}</p>
+                  {message.role === "assistant" ? (
+                    <MarkdownRenderer content={message.content} className="leading-relaxed text-gray-900" />
+                  ) : (
+                    <p className="whitespace-pre-wrap leading-relaxed">{message.content}</p>
+                  )}
                 </div>
                 {message.role === "user" && (
-                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gray-400 flex items-center justify-center text-white font-semibold text-sm">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gray-400 flex items-center justify-center text-white font-semibold text-sm mt-0.5">
                     You
                   </div>
                 )}

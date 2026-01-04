@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import "./globals.css"
 import { Navigation } from "@/components/Navigation"
 import { Footer } from "@/components/Footer"
+import { Chatbot } from "@/components/Chatbot"
 
 export const metadata: Metadata = {
   title: "Tool Thinker - Tools That Help Founders Make Progress",
@@ -23,6 +24,7 @@ export default function RootLayout({
         <Navigation />
         <main>{children}</main>
         <Footer />
+        <Chatbot />
       </body>
     </html>
   )

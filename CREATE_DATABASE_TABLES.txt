@@ -1,0 +1,50 @@
+# How to Create Database Tables in Supabase
+
+## The Problem
+Error: "Could not find the table 'public.steps' in the schema cache"
+This means the database tables don't exist yet.
+
+## Solution: Create Tables in Supabase
+
+### Step 1: View the SQL Schema on Your Server
+Run this command on your server to see the SQL:
+
+```bash
+cat ~/tool-thinker/lib/supabase/schema.sql
+```
+
+### Step 2: Copy the SQL
+Copy the entire output from the command above.
+
+### Step 3: Go to Supabase Dashboard
+1. Open https://supabase.com/dashboard in your browser
+2. Sign in to your account
+3. Click on your project (should be the one with URL: dejhoudyhqjxbcnrixdd.supabase.co)
+
+### Step 4: Run the SQL
+1. In Supabase Dashboard, click "SQL Editor" in the left sidebar
+2. Click "New Query" button
+3. Paste the SQL you copied from Step 2
+4. Click "Run" button (or press Ctrl+Enter / Cmd+Enter)
+5. You should see "Success. No rows returned"
+
+### Step 5: Verify Tables Were Created
+1. In Supabase Dashboard, click "Table Editor" in the left sidebar
+2. You should see these 6 tables:
+   - projects
+   - steps
+   - step_inputs
+   - step_outputs
+   - feedback
+   - events
+
+### Step 6: Restart Your App
+After creating tables, restart PM2:
+
+```bash
+pm2 restart tool-thinker
+```
+
+## That's It!
+After this, the "Failed to generate output" error should be fixed.
+

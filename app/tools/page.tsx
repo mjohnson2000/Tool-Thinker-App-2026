@@ -43,12 +43,108 @@ export default function ToolsPage() {
       category: "Generator Tools",
     },
     {
-      id: "start-smart-os",
-      title: "Start Smart OS",
+      id: "marketing-blueprint",
+      title: "Marketing Blueprint",
+      description: "Create a complete attention-to-scale marketing system based on proven Facebook Ads strategies",
+      icon: "📱",
+      href: "/tools/marketing-blueprint",
+      category: "Generator Tools",
+    },
+    {
+      id: "business-plan-generator",
+      title: "Business Plan Generator",
+      description: "Create a comprehensive, professional business plan with all essential sections and financial projections",
+      icon: "📋",
+      href: "/tools/business-plan-generator",
+      category: "Generator Tools",
+    },
+    {
+      id: "pitch-deck-generator",
+      title: "Pitch Deck Generator",
+      description: "Create an investor-ready pitch deck with all essential slides for fundraising",
+      icon: "📊",
+      href: "/tools/pitch-deck-generator",
+      category: "Generator Tools",
+    },
+    {
+      id: "customer-interview-generator",
+      title: "Customer Interview Guide",
+      description: "Generate comprehensive interview questions and scripts to validate your business idea with customers",
+      icon: "🎤",
+      href: "/tools/customer-interview-generator",
+      category: "Generator Tools",
+    },
+    {
+      id: "financial-model-calculator",
+      title: "Financial Model Calculator",
+      description: "Calculate unit economics, revenue projections, cash flow, and financial health metrics",
+      icon: "💰",
+      href: "/tools/financial-model-calculator",
+      category: "Calculator Tools",
+    },
+    {
+      id: "valuation-calculator",
+      title: "Valuation Calculator",
+      description: "Estimate your startup valuation for fundraising and investor conversations",
+      icon: "💎",
+      href: "/tools/valuation-calculator",
+      category: "Calculator Tools",
+    },
+    {
+      id: "equity-dilution-calculator",
+      title: "Equity Dilution Calculator",
+      description: "Calculate how funding rounds affect your ownership percentage",
+      icon: "📊",
+      href: "/tools/equity-dilution-calculator",
+      category: "Calculator Tools",
+    },
+    {
+      id: "market-size-calculator",
+      title: "Market Size Calculator",
+      description: "Calculate TAM, SAM, and SOM for your startup",
+      icon: "📈",
+      href: "/tools/market-size-calculator",
+      category: "Calculator Tools",
+    },
+    {
+      id: "pricing-strategy-calculator",
+      title: "Pricing Strategy Calculator",
+      description: "Determine optimal pricing based on costs, margins, and market positioning",
+      icon: "💵",
+      href: "/tools/pricing-strategy-calculator",
+      category: "Calculator Tools",
+    },
+    {
+      id: "runway-calculator",
+      title: "Runway Calculator",
+      description: "Calculate how long your startup can operate with current cash",
+      icon: "⏱️",
+      href: "/tools/runway-calculator",
+      category: "Calculator Tools",
+    },
+    {
+      id: "team-cost-calculator",
+      title: "Team Cost Calculator",
+      description: "Calculate total cost of employees including hidden costs",
+      icon: "👥",
+      href: "/tools/team-cost-calculator",
+      category: "Calculator Tools",
+    },
+    {
+      id: "competitor-analysis",
+      title: "Competitor Analysis Tool",
+      description: "Analyze your competitive landscape and identify positioning opportunities",
+      icon: "🔍",
+      href: "/tools/competitor-analysis",
+      category: "Generator Tools",
+    },
+    {
+      id: "startup-plan-generator",
+      title: "Startup Plan Generator",
       description: "Turn your messy idea into a validated, structured, executable startup plan",
       icon: "🚀",
-      href: "/tools/start-smart-os",
-      category: "OS Tools",
+      href: "/tools/startup-plan-generator",
+      category: "Generator Tools",
     },
     {
       id: "templates",
@@ -79,9 +175,10 @@ export default function ToolsPage() {
 
   // Popular tools (most used by users)
   const popularToolIds = [
+    "alpha-hustler",
     "framework-navigator",
     "business-model-generator",
-    "start-smart-os",
+    "startup-plan-generator",
     "consultation",
   ]
 
@@ -100,9 +197,10 @@ export default function ToolsPage() {
 
   const filteredTools = filterTools(tools)
   const popularTools = filterTools(tools.filter((tool) => popularToolIds.includes(tool.id))).slice(0, 4)
-  const otherTools = filterTools(tools.filter((tool) => !popularToolIds.includes(tool.id)))
+  // Show all tools in their categories, even if they're popular (popular tools appear in both sections)
+  const otherTools = filterTools(tools)
 
-  // Group other tools by category
+  // Group all tools by category (including popular ones)
   const toolsByCategory = otherTools.reduce((acc, tool) => {
     if (!acc[tool.category]) {
       acc[tool.category] = []
@@ -114,7 +212,7 @@ export default function ToolsPage() {
   const categoryOrder = [
     "Framework Tools",
     "Generator Tools",
-    "OS Tools",
+    "Calculator Tools",
     "Template Tools",
     "AI Tools",
     "External Tools",
@@ -172,7 +270,9 @@ export default function ToolsPage() {
                       <h3 className="text-xl font-bold text-gray-900 mb-3 flex items-center gap-2">
                         {tool.title}
                         {tool.external && (
-                          <span className="text-sm text-gray-400 font-normal">↗</span>
+                          <span className="px-2 py-0.5 bg-gray-100 text-gray-700 text-xs font-semibold rounded-full">
+                            External ↗
+                          </span>
                         )}
                       </h3>
                       <p className="text-gray-600 text-sm leading-relaxed">{tool.description}</p>
@@ -228,7 +328,9 @@ export default function ToolsPage() {
                         <h3 className="text-xl font-bold text-gray-900 mb-3 flex items-center gap-2">
                           {tool.title}
                           {tool.external && (
-                            <span className="text-sm text-gray-400 font-normal">↗</span>
+                            <span className="px-2 py-0.5 bg-gray-100 text-gray-700 text-xs font-semibold rounded-full">
+                              External ↗
+                            </span>
                           )}
                         </h3>
                         <p className="text-gray-600 text-sm leading-relaxed">{tool.description}</p>
@@ -309,12 +411,6 @@ export default function ToolsPage() {
               <h3 className="text-xl font-semibold text-gray-800 mb-3">Template Tools</h3>
               <p className="text-gray-600 text-sm">
                 Ready-to-use templates for various business needs. From planning documents to execution frameworks, we provide templates that you can customize for your startup.
-              </p>
-            </a>
-            <a href="#os-tools" className="bg-gray-50 rounded-lg p-6 hover:bg-gray-100 transition cursor-pointer">
-              <h3 className="text-xl font-semibold text-gray-800 mb-3">OS Tools</h3>
-              <p className="text-gray-600 text-sm">
-                Comprehensive operating systems like Start Smart OS that guide you through your entire startup journey. These integrated tools provide step-by-step guidance from idea to launch.
               </p>
             </a>
             <a href="#ai-tools" className="bg-gray-50 rounded-lg p-6 hover:bg-gray-100 transition cursor-pointer">

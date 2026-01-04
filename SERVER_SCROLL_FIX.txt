@@ -1,0 +1,41 @@
+# Quick Fix for Scroll-to-Top on Server
+# Run these commands on your server
+
+cd ~/tool-thinker
+
+# Option 1: Pull from GitHub (if you pushed the changes)
+git pull origin main
+npm run build
+pm2 restart tool-thinker
+
+# Option 2: Manual fix - Add scroll-to-top to useEffect
+# Edit the file:
+nano components/Navigation.tsx
+
+# Find this section (around line 12-15):
+#   useEffect(() => {
+#     setIsMenuOpen(false)
+#   }, [pathname])
+
+# Change it to:
+#   useEffect(() => {
+#     setIsMenuOpen(false)
+#     // Scroll to top on route change
+#     window.scrollTo({ top: 0, behavior: 'instant' })
+#   }, [pathname])
+#   
+#   // Helper function to handle link clicks
+#   const handleLinkClick = () => {
+#     setIsMenuOpen(false)
+#     // Scroll to top immediately
+#     window.scrollTo({ top: 0, behavior: 'instant' })
+#   }
+
+# Then replace all mobile menu onClick handlers:
+# Change: onClick={() => setIsMenuOpen(false)}
+# To: onClick={handleLinkClick}
+
+# Save and rebuild:
+npm run build
+pm2 restart tool-thinker
+

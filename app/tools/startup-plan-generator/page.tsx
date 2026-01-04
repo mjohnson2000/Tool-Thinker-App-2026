@@ -12,7 +12,7 @@ interface Project {
   updated_at: string
 }
 
-export default function StartSmartOSPage() {
+export default function StartupPlanGeneratorPage() {
   const [projects, setProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
   const [newProjectName, setNewProjectName] = useState("")
@@ -110,7 +110,7 @@ export default function StartSmartOSPage() {
     <div className="min-h-screen bg-gray-50 py-16">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8 text-center">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Start Smart OS</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">Startup Plan Generator</h1>
           <p className="text-xl text-gray-600">
             Turn your messy idea into a validated, structured, executable startup plan
           </p>

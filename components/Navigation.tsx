@@ -48,6 +48,7 @@ export function Navigation() {
             <div className="relative group">
               <Link 
                 href="/tools"
+                onClick={() => window.scrollTo({ top: 0, behavior: 'instant' })}
                 className={`px-4 py-2 rounded-md flex items-center ${
                   isToolsActive 
                     ? 'bg-gray-900 text-white hover:bg-gray-800' 
@@ -66,7 +67,7 @@ export function Navigation() {
                   <Link href="/tools/frameworks" onClick={() => window.scrollTo({ top: 0, behavior: 'instant' })} className={`block px-4 py-2 text-sm hover:bg-gray-100 ${isActive('/tools/frameworks') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Framework Tools</Link>
                   <Link href="/tools/framework-navigator" onClick={() => window.scrollTo({ top: 0, behavior: 'instant' })} className={`block px-4 py-2 text-sm hover:bg-gray-100 ${isActive('/tools/framework-navigator') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Framework Navigator</Link>
                   <Link href="/tools/business-model-generator" onClick={() => window.scrollTo({ top: 0, behavior: 'instant' })} className={`block px-4 py-2 text-sm hover:bg-gray-100 ${isActive('/tools/business-model-generator') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Business Model Generator</Link>
-                  <Link href="/tools/start-smart-os" onClick={() => window.scrollTo({ top: 0, behavior: 'instant' })} className={`block px-4 py-2 text-sm hover:bg-gray-100 ${isActive('/tools/start-smart-os') || pathname?.startsWith('/tools/start-smart-os') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Start Smart OS</Link>
+                  <Link href="/tools/startup-plan-generator" onClick={() => window.scrollTo({ top: 0, behavior: 'instant' })} className={`block px-4 py-2 text-sm hover:bg-gray-100 ${isActive('/tools/startup-plan-generator') || pathname?.startsWith('/tools/startup-plan-generator') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Startup Plan Generator</Link>
                   <Link href="/tools/templates" onClick={() => window.scrollTo({ top: 0, behavior: 'instant' })} className={`block px-4 py-2 text-sm hover:bg-gray-100 ${isActive('/tools/templates') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Downloadable Templates</Link>
                   <Link href="/consultation" onClick={() => window.scrollTo({ top: 0, behavior: 'instant' })} className={`block px-4 py-2 text-sm hover:bg-gray-100 ${isActive('/consultation') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Free Consultation</Link>
                   <a href="https://alphahustler.tech/" target="_blank" rel="noopener noreferrer" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
@@ -154,7 +155,7 @@ export function Navigation() {
                 <Link href="/tools/frameworks" onClick={handleLinkClick} className={`block py-2 hover:bg-gray-100 ${isActive('/tools/frameworks') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Framework Tools</Link>
                 <Link href="/tools/framework-navigator" onClick={handleLinkClick} className={`block py-2 hover:bg-gray-100 ${isActive('/tools/framework-navigator') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Framework Navigator</Link>
                 <Link href="/tools/business-model-generator" onClick={handleLinkClick} className={`block py-2 hover:bg-gray-100 ${isActive('/tools/business-model-generator') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Business Model Generator</Link>
-                <Link href="/tools/start-smart-os" onClick={handleLinkClick} className={`block py-2 hover:bg-gray-100 ${isActive('/tools/start-smart-os') || pathname?.startsWith('/tools/start-smart-os') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Start Smart OS</Link>
+                <Link href="/tools/startup-plan-generator" onClick={handleLinkClick} className={`block py-2 hover:bg-gray-100 ${isActive('/tools/startup-plan-generator') || pathname?.startsWith('/tools/startup-plan-generator') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Startup Plan Generator</Link>
                 <Link href="/tools/templates" onClick={handleLinkClick} className={`block py-2 hover:bg-gray-100 ${isActive('/tools/templates') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Downloadable Templates</Link>
                 <Link href="/consultation" onClick={handleLinkClick} className={`block py-2 hover:bg-gray-100 ${isActive('/consultation') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Free Consultation</Link>
                 <a href="https://alphahustler.tech/" target="_blank" rel="noopener noreferrer" onClick={handleLinkClick} className="block py-2 text-gray-700 hover:bg-gray-100">

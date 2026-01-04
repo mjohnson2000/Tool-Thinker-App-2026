@@ -1,0 +1,28 @@
+# Quick Commands to Update Book URL on Server
+# Run these commands on your server via SSH
+
+cd ~/tool-thinker
+
+# Option 1: Pull from GitHub (if you pushed the changes)
+git pull origin main
+npm run build
+pm2 restart tool-thinker
+
+# Option 2: Manual update (if git pull doesn't work)
+# Update app/page.tsx
+sed -i 's|https://www.amazon.com/dp/YOUR_BOOK_ISBN|https://www.amazon.com/START-SMART-Entrepreneurs-Frameworks-need/dp/1300734477|g' app/page.tsx
+
+# Update app/books/page.tsx
+sed -i 's|https://www.amazon.com/dp/YOUR_BOOK_ISBN|https://www.amazon.com/START-SMART-Entrepreneurs-Frameworks-need/dp/1300734477|g' app/books/page.tsx
+
+# Verify changes
+grep "1300734477" app/page.tsx
+grep "1300734477" app/books/page.tsx
+
+# Rebuild and restart
+npm run build
+pm2 restart tool-thinker
+
+# Option 3: Use the script (copy fix-consultation-api.sh to server first)
+# bash update-book-url-server.sh
+

@@ -1,0 +1,84 @@
+# Quick Fix for Server - Navigation.tsx Syntax Error
+# Run these commands on your server:
+
+cd ~/tool-thinker
+
+# Step 1: Restore Navigation.tsx from git
+git checkout components/Navigation.tsx
+
+# Step 2: Create and run the safe fix script
+cat > fix_nav_safe.sh << 'FIXEOF'
+#!/bin/bash
+cd ~/tool-thinker
+
+# Restore if needed
+git checkout components/Navigation.tsx 2>/dev/null || true
+
+# Apply fix with Python
+python3 << 'PYEOF'
+import re
+
+with open('components/Navigation.tsx', 'r') as f:
+    content = f.read()
+
+# Skip if already fixed
+if 'handleLinkClick' in content:
+    print("Already fixed")
+    exit(0)
+
+# Fix import
+content = content.replace(
+    'import { useState } from "react"',
+    'import { useState, useEffect } from "react"'
+)
+
+# Add after pathname line
+content = re.sub(
+    r'(const pathname = usePathname\(\))\n',
+    r'''\1
+  
+  // Close menu when route changes and scroll to top
+  useEffect(() => {
+    setIsMenuOpen(false)
+    // Scroll to top on route change
+    window.scrollTo({ top: 0, behavior: 'instant' })
+  }, [pathname])
+  
+  // Helper function to handle link clicks
+  const handleLinkClick = () => {
+    setIsMenuOpen(false)
+    // Scroll to top immediately
+    window.scrollTo({ top: 0, behavior: 'instant' })
+  }
+''',
+    content
+)
+
+# Replace mobile onClick
+content = content.replace(
+    'onClick={() => setIsMenuOpen(false)}',
+    'onClick={handleLinkClick}'
+)
+
+# Add scroll to desktop links
+for href in ['/', '/blogs', '/about']:
+    pattern = f'(<Link\\s+href="{re.escape(href)}"\\s+)(className=)'
+    if f'href="{href}" onClick' not in content:
+        content = re.sub(pattern, r'\\1onClick={() => window.scrollTo({ top: 0, behavior: \\'instant\\' })}\\n              \\2', content)
+
+# Write back
+with open('components/Navigation.tsx', 'w') as f:
+    f.write(content)
+
+print("Fixed")
+PYEOF
+
+echo "✅ Fixed"
+FIXEOF
+
+chmod +x fix_nav_safe.sh
+bash fix_nav_safe.sh
+
+# Step 3: Rebuild
+npm run build && pm2 restart tool-thinker
+

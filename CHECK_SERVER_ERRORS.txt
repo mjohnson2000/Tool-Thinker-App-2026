@@ -1,0 +1,17 @@
+# Check Server Errors - Run on Server
+
+# Step 1: Check PM2 logs for detailed errors
+pm2 logs tool-thinker --lines 50
+
+# Step 2: Check if .env variables are loaded
+pm2 env 0 | grep -E "(OPENAI|SUPABASE)"
+
+# Step 3: Test the API directly
+curl -X POST http://localhost:3000/api/steps \
+  -H "Content-Type: application/json" \
+  -d '{"projectId":"test-123","stepKey":"jtbd"}' \
+  -v
+
+# Step 4: Check if Supabase connection works
+curl http://localhost:3000/api/projects
+

@@ -55,9 +55,8 @@ export default function Home() {
               </p>
             </Link>
             <Link href="/tools#os-tools" className="bg-gray-50 rounded-lg p-6 hover:bg-gray-100 transition cursor-pointer">
-              <h3 className="text-xl font-semibold text-gray-800 mb-3">OS Tools</h3>
               <p className="text-gray-600 text-sm">
-                Comprehensive operating systems like Start Smart OS that guide you through your entire startup journey. These integrated tools provide step-by-step guidance from idea to launch.
+                Comprehensive planning systems like Startup Plan Generator that guide you through your entire startup journey. These integrated tools provide step-by-step guidance from idea to launch.
               </p>
             </Link>
           </div>

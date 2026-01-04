@@ -4,6 +4,7 @@ import { useState } from "react"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { jsPDF } from "jspdf"
+import { DisclaimerBanner } from "@/components/DisclaimerBanner"
 
 interface RoadmapStep {
   step: number
@@ -286,6 +287,8 @@ export default function FrameworkNavigatorPage() {
                 </Button>
               </div>
             </div>
+
+            <DisclaimerBanner className="mt-8" />
           </div>
         )}
       </div>

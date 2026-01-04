@@ -10,6 +10,7 @@ import { FeedbackForm } from "@/components/FeedbackForm"
 import { Button } from "@/components/ui/button"
 import { getFramework, getNextStep, getPreviousStep, FRAMEWORK_ORDER } from "@/lib/frameworks"
 import type { Framework } from "@/types/frameworks"
+import { DisclaimerBanner } from "@/components/DisclaimerBanner"
 
 export default function StepPage() {
   const params = useParams()
@@ -27,6 +28,12 @@ export default function StepPage() {
   const [step, setStep] = useState<any>(null)
 
   useEffect(() => {
+    // Redirect if projectId is undefined
+    if (!projectId || projectId === "undefined") {
+      router.push("/tools/startup-plan-generator")
+      return
+    }
+    
     if (stepId) {
       loadStep()
       loadCompletedSteps()
@@ -34,6 +41,11 @@ export default function StepPage() {
   }, [stepId, projectId])
 
   async function loadStep() {
+    if (!projectId || projectId === "undefined") {
+      router.push("/tools/startup-plan-generator")
+      return
+    }
+    
     try {
       const frameworkData = getFramework(stepId)
       if (!frameworkData) {
@@ -48,26 +60,45 @@ export default function StepPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ projectId, stepKey: stepId }),
       })
+      
+      if (!res.ok) {
+        const errorData = await res.json()
+        console.error("API error:", errorData)
+        throw new Error(errorData.error || "Failed to load step")
+      }
+      
       const data = await res.json()
       setStep(data.step)
       setInputs(data.inputs || {})
       setOutput(data.output)
     } catch (error) {
       console.error("Failed to load step:", error)
+      // Redirect to project overview on error
+      if (projectId && projectId !== "undefined") {
+        router.push(`/project/${projectId}/overview`)
+      } else {
+        router.push("/tools/startup-plan-generator")
+      }
     } finally {
       setLoading(false)
     }
   }
 
   async function loadCompletedSteps() {
+    if (!projectId || projectId === "undefined") {
+      return
+    }
+    
     // Load all step statuses to show progress
     const completed: string[] = []
     for (const stepKey of FRAMEWORK_ORDER) {
       try {
         const res = await fetch(`/api/steps?projectId=${projectId}&stepKey=${stepKey}`)
-        const data = await res.json()
-        if (data.step?.status === "completed") {
-          completed.push(stepKey)
+        if (res.ok) {
+          const data = await res.json()
+          if (data.step?.status === "completed") {
+            completed.push(stepKey)
+          }
         }
       } catch (error) {
         // Ignore errors
@@ -77,6 +108,10 @@ export default function StepPage() {
   }
 
   async function saveInputs(newInputs: Record<string, any>) {
+    if (!projectId || projectId === "undefined") {
+      return
+    }
+    
     setInputs(newInputs)
     try {
       await fetch("/api/steps", {
@@ -91,6 +126,12 @@ export default function StepPage() {
 
   async function generateOutput() {
     if (!framework) return
+    
+    if (!projectId || projectId === "undefined") {
+      alert("Invalid project. Please create a project first.")
+      router.push("/tools/startup-plan-generator")
+      return
+    }
 
     // Check completeness
     const completeness = framework.completeness(inputs)
@@ -110,7 +151,8 @@ export default function StepPage() {
       })
 
       if (!res.ok) {
-        throw new Error("Failed to generate output")
+        const errorData = await res.json().catch(() => ({}))
+        throw new Error(errorData.error || "Failed to generate output")
       }
 
       const reader = res.body?.getReader()
@@ -194,6 +236,7 @@ export default function StepPage() {
       title={framework.title}
       description={framework.description}
     >
+      <DisclaimerBanner className="mb-6" />
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Left: Questions */}
         <div>

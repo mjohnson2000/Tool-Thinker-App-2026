@@ -1,89 +1,69 @@
-# Copy and paste these commands into your SSH session on the server
+# Copy and paste these commands on your server (SSH)
 
-# Step 1: Backup current config
-cp /etc/nginx/sites-available/tool-thinker /etc/nginx/sites-available/tool-thinker.backup.$(date +%Y%m%d_%H%M%S)
+cd ~/tool-thinker
 
-# Step 2: Create the updated Nginx config
-cat > /etc/nginx/sites-available/tool-thinker << 'EOF'
-# HTTP server for domain - redirect to HTTPS
-server {
-    listen 80;
-    server_name toolthinker.com www.toolthinker.com;
-    return 301 https://$host$request_uri;
-}
+# ============================================
+# OPTION 1: Pull from GitHub (if you pushed)
+# ============================================
+git pull origin main
+npm run build
+pm2 restart tool-thinker
 
-# HTTP server for IP - serve directly (no SSL)
-server {
-    listen 80;
-    server_name 72.62.170.11;
-    
-    location / {
-        proxy_pass http://localhost:3000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_cache_bypass $http_upgrade;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        
-        proxy_connect_timeout 60s;
-        proxy_send_timeout 60s;
-        proxy_read_timeout 60s;
-    }
-}
+# ============================================
+# OPTION 2: Manual Fix (if git pull doesn't work)
+# ============================================
 
-# HTTPS server for domain only
-server {
-    listen 443 ssl http2;
-    server_name toolthinker.com www.toolthinker.com;
+# Step 1: Update book URL
+sed -i 's|https://www.amazon.com/dp/YOUR_BOOK_ISBN|https://www.amazon.com/START-SMART-Entrepreneurs-Frameworks-need/dp/1300734477|g' app/page.tsx
 
-    ssl_certificate /etc/letsencrypt/live/toolthinker.com/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/toolthinker.com/privkey.pem;
-    include /etc/letsencrypt/options-ssl-nginx.conf;
-    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+# Step 2: Fix Navigation.tsx - Update import
+sed -i 's/import { useState } from "react"/import { useState, useEffect } from "react"/' components/Navigation.tsx
 
-    location / {
-        proxy_pass http://localhost:3000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_cache_bypass $http_upgrade;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        
-        proxy_connect_timeout 60s;
-        proxy_send_timeout 60s;
-        proxy_read_timeout 60s;
-    }
-}
+# Step 3: Add useEffect and handleLinkClick after pathname line
+# First, let's create a backup
+cp components/Navigation.tsx components/Navigation.tsx.backup
 
-# Catch-all HTTPS server for IP addresses - redirect to HTTP
-# This prevents SSL certificate errors when accessing via IP
-server {
-    listen 443 ssl http2 default_server;
-    server_name 72.62.170.11 _;
-    
-    ssl_certificate /etc/letsencrypt/live/toolthinker.com/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/toolthinker.com/privkey.pem;
-    include /etc/letsencrypt/options-ssl-nginx.conf;
-    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
-    
-    # Redirect HTTPS to HTTP for IP access
-    return 301 http://$host$request_uri;
-}
-EOF
+# Now we need to add the useEffect and handleLinkClick
+# This is complex with sed, so we'll use a here-document approach
+cat > /tmp/nav_fix.txt << 'NAVEOF'
+  
+  // Close menu when route changes and scroll to top
+  useEffect(() => {
+    setIsMenuOpen(false)
+    // Scroll to top on route change
+    window.scrollTo({ top: 0, behavior: 'instant' })
+  }, [pathname])
+  
+  // Helper function to handle link clicks
+  const handleLinkClick = () => {
+    setIsMenuOpen(false)
+    // Scroll to top immediately
+    window.scrollTo({ top: 0, behavior: 'instant' })
+  }
+NAVEOF
 
-# Step 3: Test the configuration
-nginx -t
+# Insert after pathname line
+sed -i '/const pathname = usePathname()/r /tmp/nav_fix.txt' components/Navigation.tsx
 
-# Step 4: If test passes, reload Nginx
-systemctl reload nginx
+# Step 4: Replace mobile menu onClick handlers
+sed -i 's/onClick={() => setIsMenuOpen(false)}/onClick={handleLinkClick}/g' components/Navigation.tsx
 
-# Step 5: Test it works
-curl -I http://72.62.170.11
-curl -I https://72.62.170.11
+# Step 5: Add scroll-to-top to desktop Home link
+sed -i 's|<Link href="/" className=|<Link href="/" onClick={() => window.scrollTo({ top: 0, behavior: '\''instant'\'' })} className=|' components/Navigation.tsx
 
+# Step 6: Add scroll-to-top to desktop Blogs link
+sed -i 's|<Link href="/blogs" className=|<Link href="/blogs" onClick={() => window.scrollTo({ top: 0, behavior: '\''instant'\'' })} className=|' components/Navigation.tsx
+
+# Step 7: Add scroll-to-top to desktop About link
+sed -i 's|<Link href="/about" className=|<Link href="/about" onClick={() => window.scrollTo({ top: 0, behavior: '\''instant'\'' })} className=|' components/Navigation.tsx
+
+# Step 8: Add scroll-to-top to desktop dropdown links (more complex, need to be careful)
+sed -i 's|<Link href="/tools" onClick={() => window.scrollTo({ top: 0, behavior: '\''instant'\'' })} className=|&|' components/Navigation.tsx || \
+sed -i '/href="\/tools"/{ /onClick/! { s/<Link href="\/tools"/<Link href="\/tools" onClick={() => window.scrollTo({ top: 0, behavior: '\''instant'\'' })}/ } }' components/Navigation.tsx
+
+# For dropdown links, we need to add onClick to each one
+# This is getting complex - better to use a Python script or manually edit
+
+# Step 9: Rebuild
+npm run build
+pm2 restart tool-thinker

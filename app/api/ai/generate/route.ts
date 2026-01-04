@@ -9,28 +9,72 @@ export async function POST(req: NextRequest) {
     const { projectId, stepKey, inputs } = body
 
     if (!projectId || !stepKey || !inputs) {
+      console.error("Missing required fields:", { projectId, stepKey, inputs: !!inputs })
       return NextResponse.json(
-        { error: "Missing required fields" },
+        { error: "Missing required fields: projectId, stepKey, and inputs are required" },
         { status: 400 }
+      )
+    }
+
+    // Check OpenAI API key
+    if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY === "your_openai_key_here") {
+      console.error("OpenAI API key not configured")
+      return NextResponse.json(
+        { error: "OpenAI API key not configured. Please set OPENAI_API_KEY in .env" },
+        { status: 500 }
       )
     }
 
     const framework = getFramework(stepKey)
     if (!framework) {
+      console.error("Framework not found for stepKey:", stepKey)
       return NextResponse.json(
-        { error: "Framework not found" },
+        { error: `Framework not found for step: ${stepKey}` },
         { status: 404 }
       )
     }
 
     // Get or create step
-    const step = await getOrCreateStep(projectId, stepKey)
+    let step
+    try {
+      step = await getOrCreateStep(projectId, stepKey)
+    } catch (dbError: any) {
+      console.error("Database error creating step:", dbError)
+      return NextResponse.json(
+        { error: `Database error: ${dbError.message || "Failed to create step"}` },
+        { status: 500 }
+      )
+    }
     
     // Update step status
-    await db.updateStepStatus(step.id, "in_progress")
+    try {
+      await db.updateStepStatus(step.id, "in_progress")
+    } catch (dbError: any) {
+      console.error("Database error updating step:", dbError)
+      // Continue anyway
+    }
 
     // Generate streaming response
-    const stream = await generateStreaming(framework, inputs)
+    let stream
+    try {
+      stream = await generateStreaming(framework, inputs)
+    } catch (aiError: any) {
+      console.error("OpenAI API error:", aiError)
+      
+      // Reset step status
+      try {
+        await db.updateStepStatus(step.id, "not_started")
+      } catch (e) {
+        // Ignore
+      }
+      
+      return NextResponse.json(
+        { 
+          error: aiError.message || "Failed to generate output. Please check your OpenAI API key and try again." 
+        },
+        { status: 500 }
+      )
+    }
 
     // Create a new readable stream that also saves the output
     let fullContent = ""

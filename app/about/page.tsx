@@ -43,9 +43,8 @@ export default function AboutPage() {
               </p>
             </Link>
             <Link href="/tools#os-tools" className="block hover:bg-gray-50 p-4 rounded-lg transition -m-4">
-              <h3 className="text-xl font-semibold text-gray-800 mb-2">OS Tools</h3>
               <p className="text-gray-600">
-                Comprehensive operating systems like Start Smart OS that guide you through your entire startup journey. These integrated tools provide step-by-step guidance from idea to launch.
+                Comprehensive planning systems like Startup Plan Generator that guide you through your entire startup journey. These integrated tools provide step-by-step guidance from idea to launch.
               </p>
             </Link>
           </div>
@@ -94,10 +93,10 @@ export default function AboutPage() {
               Explore All Tools
             </Link>
             <Link
-              href="/tools/start-smart-os"
+              href="/tools/startup-plan-generator"
               className="px-6 py-3 border-2 border-white text-white rounded-lg hover:bg-white hover:text-gray-900 transition font-semibold"
             >
-              Try Start Smart OS
+              Try Startup Plan Generator
             </Link>
           </div>
         </div>
