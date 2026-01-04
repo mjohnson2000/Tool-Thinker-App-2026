@@ -89,10 +89,9 @@ export default function ValuationCalculatorPage() {
 
       const data = await response.json()
       setValuation(data)
-    } catch (err: unknown) {
+    } catch (err: any) {
       logger.error("Calculation error:", err)
-      const errorMessage = err instanceof Error ? err.message : "Failed to calculate valuation. Please try again."
-      setError(errorMessage)
+      setError(err.message || "Failed to calculate valuation. Please try again.")
     } finally {
       setIsCalculating(false)
     }

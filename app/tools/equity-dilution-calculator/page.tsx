@@ -81,16 +81,11 @@ export default function EquityDilutionCalculatorPage() {
 
       let fundingRounds: FundingRound[] | undefined = undefined
       if (fundingRoundsJson.trim()) {
-        try {
-          const parsed = JSON.parse(fundingRoundsJson)
-          if (!Array.isArray(parsed)) {
-            throw new Error("Funding rounds must be a JSON array")
-          }
-          fundingRounds = parsed
-        } catch (parseError: unknown) {
-          const errorMsg = parseError instanceof Error ? parseError.message : "Invalid JSON format"
-          throw new Error(`Invalid JSON format for funding rounds: ${errorMsg}`)
+        const parsed = JSON.parse(fundingRoundsJson)
+        if (!Array.isArray(parsed)) {
+          throw new Error("Funding rounds must be a JSON array")
         }
+        fundingRounds = parsed
       }
 
       const response = await fetch("/api/equity-dilution-calculator/calculate", {
@@ -110,10 +105,9 @@ export default function EquityDilutionCalculatorPage() {
 
       const data = await response.json()
       setDilution(data)
-    } catch (err: unknown) {
+    } catch (err: any) {
       logger.error("Calculation error:", err)
-      const errorMessage = err instanceof Error ? err.message : "Failed to calculate equity dilution. Please try again."
-      setError(errorMessage)
+      setError(err.message || "Failed to calculate equity dilution. Please try again.")
     } finally {
       setIsCalculating(false)
     }
