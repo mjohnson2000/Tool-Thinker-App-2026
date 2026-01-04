@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { DisclaimerBanner } from "@/components/DisclaimerBanner"
 import { ShareButton } from "@/components/ShareButton"
 import { TrendingDown } from "lucide-react"
+import { logger } from "@/lib/logger"
 
 interface FundingRound {
   round_name: string
@@ -108,9 +109,10 @@ export default function EquityDilutionCalculatorPage() {
 
       const data = await response.json()
       setDilution(data)
-    } catch (err: any) {
-      console.error("Calculation error:", err)
-      setError(err.message || "Failed to calculate equity dilution. Please try again.")
+    } catch (err: unknown) {
+      logger.error("Calculation error:", err)
+      const errorMessage = err instanceof Error ? err.message : "Failed to calculate equity dilution. Please try again."
+      setError(errorMessage)
     } finally {
       setIsCalculating(false)
     }

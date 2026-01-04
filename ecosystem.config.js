@@ -10,16 +10,16 @@ module.exports = {
     {
       name: 'tool-thinker',
       script: 'node_modules/next/dist/bin/next',
-      args: 'dev -p 3001',
+      args: 'start',
       instances: 1, // Use 1 instance for now, increase for load balancing
       exec_mode: 'fork',
       env: {
-        NODE_ENV: 'development',
-        PORT: 3001,
+        NODE_ENV: 'production',
+        PORT: 3000,
       },
       // Auto-restart settings
       autorestart: true,
-      watch: true, // Set to true for development, false for production
+      watch: false, // Set to false for production
       max_memory_restart: '500M', // Restart if memory exceeds 500MB
       
       // Logging
