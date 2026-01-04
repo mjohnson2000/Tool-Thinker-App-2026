@@ -64,13 +64,22 @@ export default function EquityDilutionCalculatorPage() {
     setDilution(null)
 
     try {
+      let fundingRounds = undefined
+      if (fundingRoundsJson.trim()) {
+        try {
+          fundingRounds = JSON.parse(fundingRoundsJson)
+        } catch {
+          throw new Error("Invalid JSON format for funding rounds")
+        }
+      }
+
       const response = await fetch("/api/equity-dilution-calculator/calculate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           currentOwnership: currentOwnership.trim() || "100",
           optionPoolPercentage: optionPoolPercentage.trim() || undefined,
-          fundingRounds: fundingRoundsJson.trim() || undefined,
+          fundingRounds: fundingRounds,
         }),
       })
 
