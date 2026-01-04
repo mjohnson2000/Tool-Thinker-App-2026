@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { DisclaimerBanner } from "@/components/DisclaimerBanner"
+import { TrendingDown } from "lucide-react"
 
 interface FundingRound {
   round_name: string
@@ -62,12 +63,30 @@ export default function EquityDilutionCalculatorPage() {
     setDilution(null)
 
     try {
+      // Validate current ownership
+      const ownershipNum = parseFloat(currentOwnership)
+      if (isNaN(ownershipNum) || ownershipNum < 0 || ownershipNum > 100) {
+        throw new Error("Current ownership must be a number between 0 and 100")
+      }
+
+      // Validate option pool if provided
+      if (optionPoolPercentage.trim()) {
+        const poolNum = parseFloat(optionPoolPercentage)
+        if (isNaN(poolNum) || poolNum < 0 || poolNum > 100) {
+          throw new Error("Option pool percentage must be a number between 0 and 100")
+        }
+      }
+
       let fundingRounds: FundingRound[] | undefined = undefined
       if (fundingRoundsJson.trim()) {
         try {
-          fundingRounds = JSON.parse(fundingRoundsJson)
-        } catch {
-          throw new Error("Invalid JSON format for funding rounds")
+          const parsed = JSON.parse(fundingRoundsJson)
+          if (!Array.isArray(parsed)) {
+            throw new Error("Funding rounds must be a JSON array")
+          }
+          fundingRounds = parsed
+        } catch (parseError: any) {
+          throw new Error(`Invalid JSON format for funding rounds: ${parseError.message}`)
         }
       }
 
@@ -97,50 +116,65 @@ export default function EquityDilutionCalculatorPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-16">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-50 py-16">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-12">
-          <h1 className="text-5xl font-bold text-gray-900 mb-4">Equity Dilution Calculator</h1>
-          <p className="text-xl text-gray-600">
+        {/* Enhanced Hero Section */}
+        <div className="text-center mb-16">
+          <div className="inline-block mb-6">
+            <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-gray-900 to-gray-700 flex items-center justify-center shadow-lg mx-auto">
+              <TrendingDown className="w-10 h-10 text-white" />
+            </div>
+          </div>
+          <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 tracking-tight">
+            Equity Dilution Calculator
+          </h1>
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
             Calculate how funding rounds affect your ownership percentage
           </p>
+          <div className="w-24 h-1 bg-gradient-to-r from-gray-900 to-gray-700 mx-auto mt-6 rounded-full"></div>
         </div>
 
         {!dilution ? (
-          <div className="bg-white rounded-lg p-8 shadow-sm">
-            <div className="space-y-6">
+          <div className="bg-white rounded-2xl p-10 shadow-xl border-2 border-gray-100">
+            <div className="space-y-8">
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
-                  <label htmlFor="currentOwnership" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="currentOwnership" className="block text-sm font-semibold text-gray-900 mb-3">
                     Current Founder Ownership %
                   </label>
                   <Input
                     id="currentOwnership"
                     type="number"
+                    min="0"
+                    max="100"
                     value={currentOwnership}
                     onChange={(e) => setCurrentOwnership(e.target.value)}
                     placeholder="100"
+                    className="border-2 border-gray-200 focus:border-gray-900 focus:ring-2 focus:ring-gray-900 rounded-xl py-3"
                   />
-                  <p className="mt-1 text-xs text-gray-500">Default: 100% (before any rounds)</p>
+                  <p className="mt-2 text-xs text-gray-500">Default: 100% (before any rounds)</p>
                 </div>
 
                 <div>
-                  <label htmlFor="optionPoolPercentage" className="block text-sm font-medium text-gray-700 mb-2">
-                    Option Pool % (Optional)
+                  <label htmlFor="optionPoolPercentage" className="block text-sm font-semibold text-gray-900 mb-3">
+                    Option Pool % <span className="text-gray-400 font-normal">(Optional)</span>
                   </label>
                   <Input
                     id="optionPoolPercentage"
                     type="number"
+                    min="0"
+                    max="100"
                     value={optionPoolPercentage}
                     onChange={(e) => setOptionPoolPercentage(e.target.value)}
                     placeholder="e.g., 15"
+                    className="border-2 border-gray-200 focus:border-gray-900 focus:ring-2 focus:ring-gray-900 rounded-xl py-3"
                   />
                 </div>
               </div>
 
               <div>
-                <label htmlFor="fundingRoundsJson" className="block text-sm font-medium text-gray-700 mb-2">
-                  Funding Rounds (JSON Format - Optional)
+                <label htmlFor="fundingRoundsJson" className="block text-sm font-semibold text-gray-900 mb-3">
+                  Funding Rounds (JSON Format) <span className="text-gray-400 font-normal">(Optional)</span>
                 </label>
                 <Textarea
                   id="fundingRoundsJson"
@@ -161,7 +195,7 @@ export default function EquityDilutionCalculatorPage() {
   }
 ]`}
                   rows={12}
-                  className="font-mono text-sm"
+                  className="font-mono text-sm border-2 border-gray-200 focus:border-gray-900 focus:ring-2 focus:ring-gray-900 rounded-xl resize-none"
                 />
                 <p className="mt-2 text-xs text-gray-500">
                   Leave blank to see a sample scenario. Include round_name, funding_amount, pre_money_valuation, and optionally option_pool_percentage for each round.
@@ -169,43 +203,59 @@ export default function EquityDilutionCalculatorPage() {
               </div>
 
               {error && (
-                <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-                  <p className="text-red-800 text-sm">{error}</p>
+                <div className="p-4 bg-red-50 border-2 border-red-200 rounded-xl">
+                  <p className="text-red-800 text-sm font-medium">{error}</p>
                 </div>
               )}
 
               <Button
                 onClick={calculateDilution}
                 disabled={isCalculating}
-                className="w-full bg-gray-900 hover:bg-gray-800"
+                className="w-full bg-gradient-to-r from-gray-900 to-gray-800 hover:from-gray-800 hover:to-gray-700 text-white py-6 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02]"
               >
-                {isCalculating ? "Calculating Dilution..." : "Calculate Equity Dilution"}
+                {isCalculating ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Calculating Dilution...
+                  </span>
+                ) : (
+                  "Calculate Equity Dilution"
+                )}
               </Button>
             </div>
           </div>
         ) : (
-          <div className="space-y-6">
-            <div className="bg-white rounded-lg p-6 shadow-sm flex justify-between items-center">
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900">Equity Dilution Analysis</h2>
-                <p className="text-gray-600 mt-1">Initial Ownership: {dilution.initial_ownership.founder_percentage}</p>
+          <div className="space-y-8">
+            {/* Results Header */}
+            <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-8 shadow-xl text-white">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                <div>
+                  <h2 className="text-3xl font-bold mb-2">Equity Dilution Analysis</h2>
+                  <p className="text-gray-300 text-lg">Initial Ownership: {dilution.initial_ownership.founder_percentage}</p>
+                </div>
+                <Button
+                  onClick={() => {
+                    setDilution(null)
+                    setCurrentOwnership("100")
+                    setOptionPoolPercentage("")
+                    setFundingRoundsJson("")
+                  }}
+                  className="bg-white text-gray-900 hover:bg-gray-100 font-semibold px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all"
+                >
+                  Calculate New Dilution
+                </Button>
               </div>
-              <Button
-                onClick={() => {
-                  setDilution(null)
-                  setCurrentOwnership("100")
-                  setOptionPoolPercentage("")
-                  setFundingRoundsJson("")
-                }}
-                variant="outline"
-              >
-                Calculate New Dilution
-              </Button>
             </div>
 
             {/* Final Ownership */}
-            <div className="bg-white rounded-lg p-8 shadow-sm">
-              <h2 className="text-3xl font-bold text-gray-900 mb-6">Final Ownership</h2>
+            <div className="bg-white rounded-2xl p-10 shadow-lg border-2 border-gray-100">
+              <div className="flex items-center gap-4 mb-8 pb-4 border-b-2 border-gray-200">
+                <div className="w-1 h-10 bg-gradient-to-b from-gray-900 to-gray-700 rounded-full"></div>
+                <h2 className="text-3xl font-bold text-gray-900">Final Ownership</h2>
+              </div>
               <div className="grid md:grid-cols-3 gap-6">
                 <div className="bg-blue-50 rounded-lg p-6 border-l-4 border-blue-500">
                   <p className="text-sm text-gray-600 mb-1">Founder Ownership</p>
@@ -223,8 +273,11 @@ export default function EquityDilutionCalculatorPage() {
             </div>
 
             {/* Round-by-Round Breakdown */}
-            <div className="bg-white rounded-lg p-8 shadow-sm">
-              <h2 className="text-3xl font-bold text-gray-900 mb-6">Round-by-Round Breakdown</h2>
+            <div className="bg-white rounded-2xl p-10 shadow-lg border-2 border-gray-100">
+              <div className="flex items-center gap-4 mb-8 pb-4 border-b-2 border-gray-200">
+                <div className="w-1 h-10 bg-gradient-to-b from-gray-900 to-gray-700 rounded-full"></div>
+                <h2 className="text-3xl font-bold text-gray-900">Round-by-Round Breakdown</h2>
+              </div>
               <div className="space-y-4">
                 {dilution.rounds.map((round, idx) => (
                   <div key={idx} className="border-l-4 border-gray-900 pl-6 py-4 bg-gray-50 rounded-r-lg">
@@ -273,8 +326,11 @@ export default function EquityDilutionCalculatorPage() {
             </div>
 
             {/* Ownership Breakdown */}
-            <div className="bg-white rounded-lg p-8 shadow-sm">
-              <h2 className="text-3xl font-bold text-gray-900 mb-6">Ownership Breakdown</h2>
+            <div className="bg-white rounded-2xl p-10 shadow-lg border-2 border-gray-100">
+              <div className="flex items-center gap-4 mb-8 pb-4 border-b-2 border-gray-200">
+                <div className="w-1 h-10 bg-gradient-to-b from-gray-900 to-gray-700 rounded-full"></div>
+                <h2 className="text-3xl font-bold text-gray-900">Ownership Breakdown</h2>
+              </div>
               <div className="grid md:grid-cols-4 gap-4">
                 <div className="text-center p-4 bg-blue-50 rounded-lg">
                   <p className="text-sm text-gray-600 mb-1">Founders</p>
@@ -296,8 +352,11 @@ export default function EquityDilutionCalculatorPage() {
             </div>
 
             {/* Insights */}
-            <div className="bg-white rounded-lg p-8 shadow-sm">
-              <h2 className="text-3xl font-bold text-gray-900 mb-6">Key Insights</h2>
+            <div className="bg-white rounded-2xl p-10 shadow-lg border-2 border-gray-100">
+              <div className="flex items-center gap-4 mb-8 pb-4 border-b-2 border-gray-200">
+                <div className="w-1 h-10 bg-gradient-to-b from-gray-900 to-gray-700 rounded-full"></div>
+                <h2 className="text-3xl font-bold text-gray-900">Key Insights</h2>
+              </div>
               <div className="space-y-4">
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">Most Dilutive Round</h3>

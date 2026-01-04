@@ -1,0 +1,29 @@
+# Server Update Commands
+# Run these commands on your server (you're already SSH'd in)
+
+# 1. Navigate to your project directory (adjust path if needed)
+cd /root/tool-thinker-app || cd /var/www/tool-thinker || cd ~/tool-thinker
+
+# 2. Check current status
+pwd
+git status
+
+# 3. Pull latest changes from GitHub
+git fetch origin
+git pull origin main
+
+# 4. Install dependencies (if package.json changed)
+npm install
+
+# 5. Build the Next.js application
+npm run build
+
+# 6. Restart PM2
+pm2 restart tool-thinker
+
+# 7. Check PM2 status
+pm2 status
+
+# 8. View recent logs to verify everything is working
+pm2 logs tool-thinker --lines 50
+

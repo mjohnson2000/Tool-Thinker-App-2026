@@ -5,6 +5,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { jsPDF } from "jspdf"
 import { DisclaimerBanner } from "@/components/DisclaimerBanner"
+import { Compass } from "lucide-react"
 
 interface RoadmapStep {
   step: number
@@ -152,19 +153,28 @@ export default function FrameworkNavigatorPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-16">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-50 py-16">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-12">
-          <h1 className="text-5xl font-bold text-gray-900 mb-4">Framework Navigator</h1>
-          <p className="text-xl text-gray-600">
+        {/* Enhanced Hero Section */}
+        <div className="text-center mb-16">
+          <div className="inline-block mb-6">
+            <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-gray-900 to-gray-700 flex items-center justify-center shadow-lg mx-auto">
+              <Compass className="w-10 h-10 text-white" />
+            </div>
+          </div>
+          <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 tracking-tight">
+            Framework Navigator
+          </h1>
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
             Start your journey by entering your goal below
           </p>
+          <div className="w-24 h-1 bg-gradient-to-r from-gray-900 to-gray-700 mx-auto mt-6 rounded-full"></div>
         </div>
 
         {!roadmap ? (
-          <div className="bg-white rounded-lg p-8 shadow-sm">
-            <div className="mb-6">
-              <label htmlFor="goal" className="block text-sm font-medium text-gray-700 mb-2">
+          <div className="bg-white rounded-2xl p-10 shadow-xl border-2 border-gray-100">
+            <div className="mb-8">
+              <label htmlFor="goal" className="block text-sm font-semibold text-gray-900 mb-3">
                 What is your business goal?
               </label>
               <Textarea
@@ -173,7 +183,7 @@ export default function FrameworkNavigatorPage() {
                 onChange={(e) => setBusinessGoal(e.target.value)}
                 placeholder="e.g., Launch a SaaS product for small businesses, Validate my startup idea, Scale my existing business..."
                 rows={6}
-                className="resize-none"
+                className="resize-none border-2 border-gray-200 focus:border-gray-900 focus:ring-2 focus:ring-gray-900 rounded-xl"
               />
               <p className="mt-2 text-sm text-gray-500">
                 Describe what you want to achieve with your business or startup
@@ -181,8 +191,8 @@ export default function FrameworkNavigatorPage() {
             </div>
 
             {error && (
-              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-red-800 text-sm">{error}</p>
+              <div className="mb-6 p-4 bg-red-50 border-2 border-red-200 rounded-xl">
+                <p className="text-red-800 text-sm font-medium">{error}</p>
               </div>
             )}
 
@@ -190,46 +200,56 @@ export default function FrameworkNavigatorPage() {
               <Button
                 onClick={generateRoadmap}
                 disabled={isGenerating || !businessGoal.trim()}
-                className="flex-1 bg-gray-900 hover:bg-gray-800"
+                className="flex-1 bg-gradient-to-r from-gray-900 to-gray-800 hover:from-gray-800 hover:to-gray-700 text-white py-6 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02]"
               >
-                {isGenerating ? "Generating Roadmap..." : "Generate Roadmap"}
+                {isGenerating ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Generating Roadmap...
+                  </span>
+                ) : (
+                  "Generate Roadmap"
+                )}
               </Button>
             </div>
           </div>
         ) : (
-          <div className="space-y-6">
+          <div className="space-y-8">
             {/* Roadmap Header */}
-            <div className="bg-white rounded-lg p-8 shadow-sm">
-              <div className="flex justify-between items-start mb-6">
+            <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-8 shadow-xl text-white">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-6">
                 <div>
-                  <h2 className="text-3xl font-bold text-gray-900 mb-2">Your Framework Roadmap</h2>
-                  <p className="text-gray-600">Goal: {roadmap.goal}</p>
+                  <h2 className="text-3xl font-bold mb-2">Your Framework Roadmap</h2>
+                  <p className="text-gray-300 text-lg">Goal: {roadmap.goal}</p>
                 </div>
                 <Button
                   onClick={downloadRoadmap}
-                  className="bg-gray-900 hover:bg-gray-800"
+                  className="bg-white text-gray-900 hover:bg-gray-100 font-semibold px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all"
                 >
-                  Download Roadmap
+                  📥 Download Roadmap
                 </Button>
               </div>
 
-              <div className="mb-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Summary</h3>
-                <p className="text-gray-600">{roadmap.summary}</p>
+              <div className="mb-6 bg-white/10 rounded-xl p-6 backdrop-blur-sm">
+                <h3 className="text-lg font-bold text-white mb-3">Summary</h3>
+                <p className="text-gray-100 leading-relaxed">{roadmap.summary}</p>
               </div>
 
-              <div className="grid md:grid-cols-2 gap-4 mb-6">
-                <div>
-                  <h3 className="text-sm font-semibold text-gray-700 mb-1">Estimated Time</h3>
-                  <p className="text-gray-900">{roadmap.estimatedTime}</p>
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="bg-white/10 rounded-xl p-5 backdrop-blur-sm">
+                  <h3 className="text-sm font-bold text-gray-200 mb-2 uppercase tracking-wide">Estimated Time</h3>
+                  <p className="text-white text-lg font-semibold">{roadmap.estimatedTime}</p>
                 </div>
-                <div>
-                  <h3 className="text-sm font-semibold text-gray-700 mb-1">Key Frameworks</h3>
+                <div className="bg-white/10 rounded-xl p-5 backdrop-blur-sm">
+                  <h3 className="text-sm font-bold text-gray-200 mb-2 uppercase tracking-wide">Key Frameworks</h3>
                   <div className="flex flex-wrap gap-2">
                     {roadmap.keyFrameworks.map((framework, idx) => (
                       <span
                         key={idx}
-                        className="px-3 py-1 bg-gray-100 text-gray-700 rounded text-sm"
+                        className="px-3 py-1.5 bg-white/20 text-white rounded-lg text-sm font-medium border border-white/30"
                       >
                         {framework}
                       </span>
@@ -240,11 +260,11 @@ export default function FrameworkNavigatorPage() {
             </div>
 
             {/* Roadmap Steps */}
-            <div className="space-y-4">
+            <div className="space-y-6">
               {roadmap.steps.map((step, idx) => (
-                <div key={idx} className="bg-white rounded-lg p-6 shadow-sm border-l-4 border-gray-900">
-                  <div className="flex items-start gap-4">
-                    <div className="flex-shrink-0 w-10 h-10 bg-gray-900 text-white rounded-full flex items-center justify-center font-bold">
+                <div key={idx} className="bg-white rounded-2xl p-8 shadow-lg border-2 border-gray-100 hover:shadow-xl transition-all">
+                  <div className="flex items-start gap-6">
+                    <div className="flex-shrink-0 w-14 h-14 bg-gradient-to-br from-gray-900 to-gray-700 text-white rounded-xl flex items-center justify-center font-bold text-lg shadow-lg">
                       {step.step}
                     </div>
                     <div className="flex-1">

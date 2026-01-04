@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { jsPDF } from "jspdf"
 import { DisclaimerBanner } from "@/components/DisclaimerBanner"
+import { FileCheck } from "lucide-react"
 
 interface BusinessPlan {
   executive_summary: {
@@ -391,27 +392,37 @@ export default function BusinessPlanGeneratorPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-16">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-50 py-16">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-12">
-          <h1 className="text-5xl font-bold text-gray-900 mb-4">Business Plan Generator</h1>
-          <p className="text-xl text-gray-600">
+        {/* Enhanced Hero Section */}
+        <div className="text-center mb-16">
+          <div className="inline-block mb-6">
+            <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-gray-900 to-gray-700 flex items-center justify-center shadow-lg mx-auto">
+              <FileCheck className="w-10 h-10 text-white" />
+            </div>
+          </div>
+          <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 tracking-tight">
+            Business Plan Generator
+          </h1>
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
             Create a comprehensive, professional business plan with AI-powered assistance
           </p>
+          <div className="w-24 h-1 bg-gradient-to-r from-gray-900 to-gray-700 mx-auto mt-6 rounded-full"></div>
         </div>
 
         {!businessPlan ? (
-          <div className="bg-white rounded-lg p-8 shadow-sm">
-            <div className="space-y-6">
+          <div className="bg-white rounded-2xl p-10 shadow-xl border-2 border-gray-100">
+            <div className="space-y-8">
               <div>
-                <label htmlFor="businessName" className="block text-sm font-medium text-gray-700 mb-2">
-                  Business Name (Optional)
+                <label htmlFor="businessName" className="block text-sm font-semibold text-gray-900 mb-3">
+                  Business Name <span className="text-gray-400 font-normal">(Optional)</span>
                 </label>
                 <Input
                   id="businessName"
                   value={businessName}
                   onChange={(e) => setBusinessName(e.target.value)}
                   placeholder="e.g., TechStart Solutions"
+                  className="border-2 border-gray-200 focus:border-gray-900 focus:ring-2 focus:ring-gray-900 rounded-xl py-3"
                 />
                 <p className="mt-2 text-sm text-gray-500">
                   The name of your business or startup
@@ -419,8 +430,8 @@ export default function BusinessPlanGeneratorPage() {
               </div>
 
               <div>
-                <label htmlFor="businessIdea" className="block text-sm font-medium text-gray-700 mb-2">
-                  Describe Your Business Idea *
+                <label htmlFor="businessIdea" className="block text-sm font-semibold text-gray-900 mb-3">
+                  Describe Your Business Idea <span className="text-red-500">*</span>
                 </label>
                 <Textarea
                   id="businessIdea"
@@ -428,7 +439,7 @@ export default function BusinessPlanGeneratorPage() {
                   onChange={(e) => setBusinessIdea(e.target.value)}
                   placeholder="e.g., A SaaS platform that helps small businesses manage their inventory and track sales in real-time. The platform will include features like automated reordering, sales analytics, and multi-location support..."
                   rows={6}
-                  className="resize-none"
+                  className="resize-none border-2 border-gray-200 focus:border-gray-900 focus:ring-2 focus:ring-gray-900 rounded-xl"
                 />
                 <p className="mt-2 text-sm text-gray-500">
                   Provide a detailed description of your business concept, products/services, and what problem you're solving
@@ -436,14 +447,15 @@ export default function BusinessPlanGeneratorPage() {
               </div>
 
               <div>
-                <label htmlFor="industry" className="block text-sm font-medium text-gray-700 mb-2">
-                  Industry (Optional)
+                <label htmlFor="industry" className="block text-sm font-semibold text-gray-900 mb-3">
+                  Industry <span className="text-gray-400 font-normal">(Optional)</span>
                 </label>
                 <Input
                   id="industry"
                   value={industry}
                   onChange={(e) => setIndustry(e.target.value)}
                   placeholder="e.g., SaaS, E-commerce, Healthcare, FinTech, Education..."
+                  className="border-2 border-gray-200 focus:border-gray-900 focus:ring-2 focus:ring-gray-900 rounded-xl py-3"
                 />
                 <p className="mt-2 text-sm text-gray-500">
                   Specify the industry or sector your business operates in
@@ -451,8 +463,8 @@ export default function BusinessPlanGeneratorPage() {
               </div>
 
               <div>
-                <label htmlFor="targetMarket" className="block text-sm font-medium text-gray-700 mb-2">
-                  Target Market (Optional)
+                <label htmlFor="targetMarket" className="block text-sm font-semibold text-gray-900 mb-3">
+                  Target Market <span className="text-gray-400 font-normal">(Optional)</span>
                 </label>
                 <Textarea
                   id="targetMarket"
@@ -460,7 +472,7 @@ export default function BusinessPlanGeneratorPage() {
                   onChange={(e) => setTargetMarket(e.target.value)}
                   placeholder="e.g., Small to medium-sized retail businesses with 10-50 employees, located in urban areas, currently using manual inventory management systems..."
                   rows={3}
-                  className="resize-none"
+                  className="resize-none border-2 border-gray-200 focus:border-gray-900 focus:ring-2 focus:ring-gray-900 rounded-xl"
                 />
                 <p className="mt-2 text-sm text-gray-500">
                   Describe your ideal customers and target market
@@ -468,14 +480,15 @@ export default function BusinessPlanGeneratorPage() {
               </div>
 
               <div>
-                <label htmlFor="fundingNeeded" className="block text-sm font-medium text-gray-700 mb-2">
-                  Funding Requirements (Optional)
+                <label htmlFor="fundingNeeded" className="block text-sm font-semibold text-gray-900 mb-3">
+                  Funding Requirements <span className="text-gray-400 font-normal">(Optional)</span>
                 </label>
                 <Input
                   id="fundingNeeded"
                   value={fundingNeeded}
                   onChange={(e) => setFundingNeeded(e.target.value)}
                   placeholder="e.g., $250,000 seed funding"
+                  className="border-2 border-gray-200 focus:border-gray-900 focus:ring-2 focus:ring-gray-900 rounded-xl py-3"
                 />
                 <p className="mt-2 text-sm text-gray-500">
                   If you're seeking funding, specify the amount and type (seed, Series A, etc.)
@@ -483,50 +496,69 @@ export default function BusinessPlanGeneratorPage() {
               </div>
 
               {error && (
-                <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-                  <p className="text-red-800 text-sm">{error}</p>
+                <div className="p-4 bg-red-50 border-2 border-red-200 rounded-xl">
+                  <p className="text-red-800 text-sm font-medium">{error}</p>
                 </div>
               )}
 
               <Button
                 onClick={generateBusinessPlan}
                 disabled={isGenerating || !businessIdea.trim()}
-                className="w-full bg-gray-900 hover:bg-gray-800"
+                className="w-full bg-gradient-to-r from-gray-900 to-gray-800 hover:from-gray-800 hover:to-gray-700 text-white py-6 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02]"
               >
-                {isGenerating ? "Generating Business Plan..." : "Generate Business Plan"}
+                {isGenerating ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Generating Business Plan...
+                  </span>
+                ) : (
+                  "Generate Business Plan"
+                )}
               </Button>
             </div>
           </div>
         ) : (
-          <div className="space-y-6">
-            <div className="bg-white rounded-lg p-6 shadow-sm flex justify-between items-center">
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900">Your Business Plan</h2>
-                <p className="text-gray-600 mt-1">{businessPlan.executive_summary.business_name}</p>
-              </div>
-              <div className="flex gap-4">
-                <Button onClick={downloadBusinessPlan} variant="outline">
-                  Download PDF
-                </Button>
-                <Button
-                  onClick={() => {
-                    setBusinessPlan(null)
-                    setBusinessIdea("")
-                    setBusinessName("")
-                    setIndustry("")
-                    setTargetMarket("")
-                    setFundingNeeded("")
-                  }}
-                  variant="outline"
-                >
-                  Create New Plan
-                </Button>
+          <div className="space-y-8">
+            {/* Results Header */}
+            <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-8 shadow-xl text-white">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                <div>
+                  <h2 className="text-3xl font-bold mb-2">Your Business Plan</h2>
+                  <p className="text-gray-300 text-lg">{businessPlan.executive_summary.business_name}</p>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <Button 
+                    onClick={downloadBusinessPlan} 
+                    className="bg-white text-gray-900 hover:bg-gray-100 font-semibold px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all"
+                  >
+                    📥 Download PDF
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      setBusinessPlan(null)
+                      setBusinessIdea("")
+                      setBusinessName("")
+                      setIndustry("")
+                      setTargetMarket("")
+                      setFundingNeeded("")
+                    }}
+                    className="bg-gray-700 text-white hover:bg-gray-600 font-semibold px-6 py-3 rounded-xl border-2 border-gray-600 transition-all"
+                  >
+                    Create New Plan
+                  </Button>
+                </div>
               </div>
             </div>
 
             {/* Executive Summary */}
-            <div className="bg-white rounded-lg p-8 shadow-sm">
-              <h2 className="text-3xl font-bold text-gray-900 mb-6">1. Executive Summary</h2>
+            <div className="bg-white rounded-2xl p-10 shadow-lg border-2 border-gray-100">
+              <div className="flex items-center gap-4 mb-8 pb-4 border-b-2 border-gray-200">
+                <div className="w-1 h-10 bg-gradient-to-b from-gray-900 to-gray-700 rounded-full"></div>
+                <h2 className="text-3xl font-bold text-gray-900">1. Executive Summary</h2>
+              </div>
               <div className="space-y-4">
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">Business Name</h3>
@@ -556,8 +588,11 @@ export default function BusinessPlanGeneratorPage() {
             </div>
 
             {/* Company Description */}
-            <div className="bg-white rounded-lg p-8 shadow-sm">
-              <h2 className="text-3xl font-bold text-gray-900 mb-6">2. Company Description</h2>
+            <div className="bg-white rounded-2xl p-10 shadow-lg border-2 border-gray-100">
+              <div className="flex items-center gap-4 mb-8 pb-4 border-b-2 border-gray-200">
+                <div className="w-1 h-10 bg-gradient-to-b from-gray-900 to-gray-700 rounded-full"></div>
+                <h2 className="text-3xl font-bold text-gray-900">2. Company Description</h2>
+              </div>
               <div className="space-y-4">
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">Company Name</h3>
@@ -595,8 +630,11 @@ export default function BusinessPlanGeneratorPage() {
             </div>
 
             {/* Market Analysis */}
-            <div className="bg-white rounded-lg p-8 shadow-sm">
-              <h2 className="text-3xl font-bold text-gray-900 mb-6">3. Market Analysis</h2>
+            <div className="bg-white rounded-2xl p-10 shadow-lg border-2 border-gray-100">
+              <div className="flex items-center gap-4 mb-8 pb-4 border-b-2 border-gray-200">
+                <div className="w-1 h-10 bg-gradient-to-b from-gray-900 to-gray-700 rounded-full"></div>
+                <h2 className="text-3xl font-bold text-gray-900">3. Market Analysis</h2>
+              </div>
               <div className="space-y-4">
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">Industry Overview</h3>
@@ -633,8 +671,11 @@ export default function BusinessPlanGeneratorPage() {
             </div>
 
             {/* Organization & Management */}
-            <div className="bg-white rounded-lg p-8 shadow-sm">
-              <h2 className="text-3xl font-bold text-gray-900 mb-6">4. Organization & Management</h2>
+            <div className="bg-white rounded-2xl p-10 shadow-lg border-2 border-gray-100">
+              <div className="flex items-center gap-4 mb-8 pb-4 border-b-2 border-gray-200">
+                <div className="w-1 h-10 bg-gradient-to-b from-gray-900 to-gray-700 rounded-full"></div>
+                <h2 className="text-3xl font-bold text-gray-900">4. Organization & Management</h2>
+              </div>
               <div className="space-y-4">
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">Organizational Structure</h3>
@@ -667,8 +708,11 @@ export default function BusinessPlanGeneratorPage() {
             </div>
 
             {/* Service/Product Line */}
-            <div className="bg-white rounded-lg p-8 shadow-sm">
-              <h2 className="text-3xl font-bold text-gray-900 mb-6">5. Service/Product Line</h2>
+            <div className="bg-white rounded-2xl p-10 shadow-lg border-2 border-gray-100">
+              <div className="flex items-center gap-4 mb-8 pb-4 border-b-2 border-gray-200">
+                <div className="w-1 h-10 bg-gradient-to-b from-gray-900 to-gray-700 rounded-full"></div>
+                <h2 className="text-3xl font-bold text-gray-900">5. Service/Product Line</h2>
+              </div>
               <div className="space-y-6">
                 {businessPlan.service_product_line.products_services.map((product, idx) => (
                   <div key={idx} className="border-l-4 border-gray-300 pl-4">
@@ -690,8 +734,11 @@ export default function BusinessPlanGeneratorPage() {
             </div>
 
             {/* Marketing & Sales */}
-            <div className="bg-white rounded-lg p-8 shadow-sm">
-              <h2 className="text-3xl font-bold text-gray-900 mb-6">6. Marketing & Sales Strategy</h2>
+            <div className="bg-white rounded-2xl p-10 shadow-lg border-2 border-gray-100">
+              <div className="flex items-center gap-4 mb-8 pb-4 border-b-2 border-gray-200">
+                <div className="w-1 h-10 bg-gradient-to-b from-gray-900 to-gray-700 rounded-full"></div>
+                <h2 className="text-3xl font-bold text-gray-900">6. Marketing & Sales Strategy</h2>
+              </div>
               <div className="space-y-4">
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">Marketing Strategy</h3>
@@ -729,8 +776,11 @@ export default function BusinessPlanGeneratorPage() {
             </div>
 
             {/* Financial Projections */}
-            <div className="bg-white rounded-lg p-8 shadow-sm">
-              <h2 className="text-3xl font-bold text-gray-900 mb-6">7. Financial Projections</h2>
+            <div className="bg-white rounded-2xl p-10 shadow-lg border-2 border-gray-100">
+              <div className="flex items-center gap-4 mb-8 pb-4 border-b-2 border-gray-200">
+                <div className="w-1 h-10 bg-gradient-to-b from-gray-900 to-gray-700 rounded-full"></div>
+                <h2 className="text-3xl font-bold text-gray-900">7. Financial Projections</h2>
+              </div>
               <div className="space-y-4">
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">Startup Costs</h3>
@@ -792,8 +842,11 @@ export default function BusinessPlanGeneratorPage() {
             </div>
 
             {/* Risk Analysis */}
-            <div className="bg-white rounded-lg p-8 shadow-sm">
-              <h2 className="text-3xl font-bold text-gray-900 mb-6">8. Risk Analysis</h2>
+            <div className="bg-white rounded-2xl p-10 shadow-lg border-2 border-gray-100">
+              <div className="flex items-center gap-4 mb-8 pb-4 border-b-2 border-gray-200">
+                <div className="w-1 h-10 bg-gradient-to-b from-gray-900 to-gray-700 rounded-full"></div>
+                <h2 className="text-3xl font-bold text-gray-900">8. Risk Analysis</h2>
+              </div>
               <div className="space-y-4">
                 {businessPlan.risk_analysis.risks.map((riskItem, idx) => (
                   <div key={idx} className="border-l-4 border-yellow-400 pl-4">
@@ -806,8 +859,11 @@ export default function BusinessPlanGeneratorPage() {
             </div>
 
             {/* Implementation Timeline */}
-            <div className="bg-white rounded-lg p-8 shadow-sm">
-              <h2 className="text-3xl font-bold text-gray-900 mb-6">9. Implementation Timeline</h2>
+            <div className="bg-white rounded-2xl p-10 shadow-lg border-2 border-gray-100">
+              <div className="flex items-center gap-4 mb-8 pb-4 border-b-2 border-gray-200">
+                <div className="w-1 h-10 bg-gradient-to-b from-gray-900 to-gray-700 rounded-full"></div>
+                <h2 className="text-3xl font-bold text-gray-900">9. Implementation Timeline</h2>
+              </div>
               <div className="space-y-4">
                 {businessPlan.implementation_timeline.milestones.map((milestone, idx) => (
                   <div key={idx} className="border-l-4 border-gray-900 pl-4">
