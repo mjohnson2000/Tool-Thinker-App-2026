@@ -17,8 +17,9 @@ import {
   Rocket
 } from "lucide-react"
 
-// Book purchase URL
-const BOOK_PURCHASE_URL = process.env.NEXT_PUBLIC_BOOK_PURCHASE_URL || "https://www.amazon.com/START-SMART-Entrepreneurs-Frameworks-need/dp/1300734477"
+// Book purchase URL - using env utility for type safety
+import { env } from "@/lib/env"
+const BOOK_PURCHASE_URL = env.NEXT_PUBLIC_BOOK_PURCHASE_URL || "https://www.amazon.com/START-SMART-Entrepreneurs-Frameworks-need/dp/1300734477"
 
 export default function Home() {
   return (

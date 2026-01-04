@@ -1,0 +1,32 @@
+# Quick 502 Diagnostic - Run these on your server
+
+# You're already on the server, so just run these commands:
+
+# 1. Check PM2 logs for errors
+pm2 logs tool-thinker --lines 50
+
+# 2. Check if port 3000 is actually listening
+lsof -i :3000
+# OR if lsof not available:
+netstat -tulpn | grep 3000
+
+# 3. Check if .next directory exists
+ls -la .next
+
+# 4. Check Nginx error logs
+sudo tail -50 /var/log/nginx/error.log
+
+# 5. Test if the app responds locally
+curl http://localhost:3000
+
+# 6. Check recent PM2 logs for crashes
+pm2 logs tool-thinker --err --lines 20
+
+# Most likely fix - rebuild:
+pm2 stop tool-thinker
+rm -rf .next
+npm run build
+pm2 start ecosystem.config.js
+pm2 save
+pm2 logs tool-thinker --lines 20
+

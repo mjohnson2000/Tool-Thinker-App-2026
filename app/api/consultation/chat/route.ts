@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from "next/server"
 import { OpenAI } from "openai"
 import type { ChatCompletionMessageParam } from "openai/resources/chat/completions"
+import { env } from "@/lib/env"
+import { logger } from "@/lib/logger"
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: env.OPENAI_API_KEY || undefined,
 })
 
 export async function POST(req: NextRequest) {
@@ -75,8 +77,16 @@ Remember: You're having a friendly conversation. Be helpful, clear, professional
 
     const allMessages: ChatCompletionMessageParam[] = [systemMessage, ...openAIMessages]
 
+    if (!env.OPENAI_API_KEY) {
+      logger.error("OpenAI API key not configured")
+      return NextResponse.json(
+        { error: "OpenAI API key not configured. Please set OPENAI_API_KEY in .env.local" },
+        { status: 500 }
+      )
+    }
+
     const completion = await openai.chat.completions.create({
-      model: process.env.OPENAI_MODEL || "gpt-4o-mini",
+      model: env.OPENAI_MODEL,
       messages: allMessages,
       temperature: 0.8,
       max_tokens: 1500,
@@ -85,10 +95,11 @@ Remember: You're having a friendly conversation. Be helpful, clear, professional
     const response = completion.choices[0]?.message?.content || "I apologize, but I couldn't generate a response. Please try again."
 
     return NextResponse.json({ response })
-  } catch (error: any) {
-    console.error("Consultation chat error:", error)
+  } catch (error: unknown) {
+    logger.error("Consultation chat error:", error)
+    const errorMessage = error instanceof Error ? error.message : "Failed to process consultation request"
     return NextResponse.json(
-      { error: error.message || "Failed to process consultation request" },
+      { error: errorMessage },
       { status: 500 }
     )
   }

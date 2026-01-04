@@ -3,6 +3,7 @@ import "./globals.css"
 import { Navigation } from "@/components/Navigation"
 import { Footer } from "@/components/Footer"
 import { Chatbot } from "@/components/Chatbot"
+import { ErrorBoundary } from "@/components/ErrorBoundary"
 
 export const metadata: Metadata = {
   title: "Tool Thinker - Tools That Help Founders Make Progress",
@@ -21,10 +22,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="font-sans antialiased">
-        <Navigation />
-        <main>{children}</main>
-        <Footer />
-        <Chatbot />
+        <ErrorBoundary>
+          <Navigation />
+          <main>{children}</main>
+          <Footer />
+          <Chatbot />
+        </ErrorBoundary>
       </body>
     </html>
   )
