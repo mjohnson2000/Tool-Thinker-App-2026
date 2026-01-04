@@ -127,6 +127,7 @@ export default function EquityDilutionCalculatorPage() {
     setFundingRoundsJson("")
   }
 
+  // Render component
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-50 py-16">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
