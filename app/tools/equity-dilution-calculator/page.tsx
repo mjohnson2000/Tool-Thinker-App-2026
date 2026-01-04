@@ -87,8 +87,9 @@ export default function EquityDilutionCalculatorPage() {
             throw new Error("Funding rounds must be a JSON array")
           }
           fundingRounds = parsed
-        } catch (parseError: any) {
-          throw new Error(`Invalid JSON format for funding rounds: ${parseError.message}`)
+        } catch (parseError: unknown) {
+          const errorMsg = parseError instanceof Error ? parseError.message : "Invalid JSON format"
+          throw new Error(`Invalid JSON format for funding rounds: ${errorMsg}`)
         }
       }
 
