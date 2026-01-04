@@ -62,7 +62,7 @@ export default function ValuationCalculatorPage() {
   const [valuation, setValuation] = useState<Valuation | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  const calculateValuation = async () => {
+  async function calculateValuation() {
     setIsCalculating(true)
     setError(null)
     setValuation(null)
@@ -96,7 +96,7 @@ export default function ValuationCalculatorPage() {
     } finally {
       setIsCalculating(false)
     }
-  };
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-50 py-16">
