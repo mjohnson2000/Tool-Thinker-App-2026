@@ -13,7 +13,6 @@ export default function ClarityProEditorPage() {
   const [text, setText] = useState("")
   const [audience, setAudience] = useState("")
   const [tone, setTone] = useState("")
-  const [format, setFormat] = useState<"html" | "plain_text">("html")
   const [isGenerating, setIsGenerating] = useState(false)
   const [result, setResult] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -47,7 +46,7 @@ export default function ClarityProEditorPage() {
           text: text.trim(),
           audience: audience.trim() || undefined,
           tone: tone || undefined,
-          format,
+          format: "plain_text",
         }),
       })
 
@@ -92,23 +91,6 @@ export default function ClarityProEditorPage() {
     doc.save(`clarity-pro-edited-${Date.now()}.pdf`)
   }
 
-  function extractHTML(htmlString: string): string | null {
-    // Extract HTML from markdown code blocks if present
-    const htmlMatch = htmlString.match(/```html\s*([\s\S]*?)\s*```/) || 
-                     htmlString.match(/```\s*([\s\S]*?)\s*```/) ||
-                     htmlString.match(/<div[^>]*>[\s\S]*?<\/div>/)
-    
-    if (htmlMatch) {
-      return htmlMatch[1] || htmlMatch[0]
-    }
-    
-    // Check if the string contains HTML directly
-    if (htmlString.includes("<div")) {
-      return htmlString
-    }
-    
-    return null
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-50 py-16">
@@ -183,36 +165,6 @@ export default function ClarityProEditorPage() {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Output Format
-                </label>
-                <div className="flex gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setFormat("html")}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
-                      format === "html"
-                        ? "bg-blue-600 text-white"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                    }`}
-                  >
-                    HTML (Side-by-side)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setFormat("plain_text")}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
-                      format === "plain_text"
-                        ? "bg-blue-600 text-white"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                    }`}
-                  >
-                    Plain Text
-                  </button>
-                </div>
-              </div>
-
               {error && (
                 <div className="bg-red-50 border border-red-200 rounded-lg p-4">
                   <p className="text-red-800 text-sm">{error}</p>
@@ -247,17 +199,9 @@ export default function ClarityProEditorPage() {
               </div>
 
               <div className="prose max-w-none">
-                {/* Check if result contains HTML */}
-                {extractHTML(result) ? (
-                  <div 
-                    className="border border-gray-200 rounded-lg p-4 bg-gray-50"
-                    dangerouslySetInnerHTML={{ __html: extractHTML(result) || "" }}
-                  />
-                ) : (
-                  <div className="whitespace-pre-wrap text-sm text-gray-700 bg-gray-50 p-6 rounded-lg border border-gray-200">
-                    <MarkdownRenderer content={result} />
-                  </div>
-                )}
+                <div className="whitespace-pre-wrap text-sm text-gray-700 bg-gray-50 p-6 rounded-lg border border-gray-200">
+                  <MarkdownRenderer content={result} />
+                </div>
               </div>
             </div>
 
