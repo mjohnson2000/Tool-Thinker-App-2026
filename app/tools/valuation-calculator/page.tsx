@@ -62,7 +62,7 @@ export default function ValuationCalculatorPage() {
   const [valuation, setValuation] = useState<Valuation | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  async function calculateValuation() {
+  const calculateValuation = async () => {
     setIsCalculating(true)
     setError(null)
     setValuation(null)
