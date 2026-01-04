@@ -218,6 +218,7 @@ export default function MarketSizeCalculatorPage() {
               >
                 Calculate New Market Size
               </Button>
+              </div>
             </div>
 
             {/* TAM, SAM, SOM */}

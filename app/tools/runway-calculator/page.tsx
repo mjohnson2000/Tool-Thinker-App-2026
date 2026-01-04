@@ -218,6 +218,7 @@ export default function RunwayCalculatorPage() {
               >
                 Calculate New Runway
               </Button>
+              </div>
             </div>
 
             {/* Current Runway */}

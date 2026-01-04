@@ -233,6 +233,7 @@ export default function TeamCostCalculatorPage() {
               >
                 Calculate New Team
               </Button>
+              </div>
             </div>
 
             {/* Total Team Costs */}

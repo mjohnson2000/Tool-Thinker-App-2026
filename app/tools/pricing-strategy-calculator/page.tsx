@@ -237,6 +237,7 @@ export default function PricingStrategyCalculatorPage() {
               >
                 Calculate New Strategy
               </Button>
+              </div>
             </div>
 
             {/* Pricing Tiers */}
