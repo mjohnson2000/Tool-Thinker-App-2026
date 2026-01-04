@@ -103,3 +103,4 @@ CREATE POLICY "Allow all operations on feedback" ON feedback
 CREATE POLICY "Allow all operations on events" ON events
   FOR ALL USING (true) WITH CHECK (true);
 
+

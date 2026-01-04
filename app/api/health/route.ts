@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { logger } from '@/lib/logger'
 
 // Health check endpoint for monitoring
 export async function GET() {
@@ -14,15 +15,18 @@ export async function GET() {
       },
       { status: 200 }
     )
-  } catch (error: any) {
+  } catch (error: unknown) {
+    logger.error("Health check error:", error)
+    const errorMessage = error instanceof Error ? error.message : "Unknown error"
     return NextResponse.json(
       {
         status: 'unhealthy',
-        error: error.message,
+        error: errorMessage,
         timestamp: new Date().toISOString(),
       },
       { status: 503 }
     )
   }
 }
+
 

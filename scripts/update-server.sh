@@ -52,3 +52,4 @@ pm2 status
 echo "✅ Server update completed successfully!"
 echo "🌐 Your application should now be running with the latest changes."
 
+

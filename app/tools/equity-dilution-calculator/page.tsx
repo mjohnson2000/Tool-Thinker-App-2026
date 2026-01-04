@@ -59,7 +59,7 @@ export default function EquityDilutionCalculatorPage() {
   const [dilution, setDilution] = useState<Dilution | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  const calculateDilution = async () => {
+  async function calculateDilution() {
     setIsCalculating(true)
     setError(null)
     setDilution(null)

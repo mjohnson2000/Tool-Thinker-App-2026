@@ -54,3 +54,4 @@ echo "  Stop:         pm2 stop tool-thinker"
 echo ""
 echo "🔗 Health check: http://localhost:3000/api/health"
 
+

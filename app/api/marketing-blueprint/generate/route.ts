@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from "next/server"
 import { OpenAI } from "openai"
 import type { AppliedSystemResult, BusinessContext } from "@/types/marketing"
+import { env } from "@/lib/env"
+import { logger } from "@/lib/logger"
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: env.OPENAI_API_KEY || undefined,
 })
 
 export async function POST(req: NextRequest) {
@@ -18,7 +20,8 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY === "your_openai_key_here") {
+    if (!env.OPENAI_API_KEY) {
+      logger.error("OpenAI API key not configured")
       return NextResponse.json(
         { error: "OpenAI API key not configured" },
         { status: 500 }
@@ -28,7 +31,7 @@ export async function POST(req: NextRequest) {
     const prompt = buildMarketingSystemPrompt(context)
 
     const completion = await openai.chat.completions.create({
-      model: process.env.OPENAI_MODEL || "gpt-4o-mini",
+      model: env.OPENAI_MODEL || "gpt-4o-mini",
       messages: [
         {
           role: "system",
@@ -65,10 +68,11 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json(result)
-  } catch (error: any) {
-    console.error("Marketing blueprint generation error:", error)
+  } catch (error: unknown) {
+    logger.error("Marketing blueprint generation error:", error)
+    const errorMessage = error instanceof Error ? error.message : "Failed to generate marketing blueprint"
     return NextResponse.json(
-      { error: error.message || "Failed to generate marketing blueprint" },
+      { error: errorMessage },
       { status: 500 }
     )
   }
