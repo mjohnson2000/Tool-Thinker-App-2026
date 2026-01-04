@@ -120,7 +120,10 @@ export default function EquityDilutionCalculatorPage() {
     <div className="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-50 py-16">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Enhanced Hero Section */}
-        <div className="text-center mb-16">
+        <div className="text-center mb-16 relative">
+          <div className="absolute top-0 right-0">
+            <ShareButton toolName="Equity Dilution Calculator" toolId="equity-dilution-calculator" />
+          </div>
           <div className="inline-block mb-6">
             <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-green-600 to-green-800 flex items-center justify-center shadow-lg mx-auto">
               <TrendingDown className="w-10 h-10 text-white" />

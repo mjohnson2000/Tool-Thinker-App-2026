@@ -157,7 +157,10 @@ export default function FrameworkNavigatorPage() {
     <div className="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-50 py-16">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Enhanced Hero Section */}
-        <div className="text-center mb-16">
+        <div className="text-center mb-16 relative">
+          <div className="absolute top-0 right-0">
+            <ShareButton toolName="Framework Navigator" toolId="framework-navigator" />
+          </div>
           <div className="inline-block mb-6">
             <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-gray-900 to-gray-700 flex items-center justify-center shadow-lg mx-auto">
               <Compass className="w-10 h-10 text-white" />

@@ -14,6 +14,9 @@ export function ShareButton({ toolName, toolId, className = "" }: ShareButtonPro
   const [copied, setCopied] = useState(false)
 
   async function handleShare() {
+    // Ensure we're on the client side
+    if (typeof window === 'undefined') return
+    
     try {
       // Create shareable URL
       const shareUrl = `${window.location.origin}/tools/${toolId}`
@@ -49,18 +52,18 @@ export function ShareButton({ toolName, toolId, className = "" }: ShareButtonPro
     <Button
       onClick={handleShare}
       variant="outline"
-      className={`flex items-center gap-2 ${className}`}
+      className={`flex items-center gap-2 border-gray-300 bg-white text-gray-700 hover:bg-gray-50 hover:text-gray-900 ${className}`}
       aria-label="Share this tool"
     >
       {copied ? (
         <>
           <Check className="w-4 h-4" />
-          Copied!
+          <span>Copied!</span>
         </>
       ) : (
         <>
           <Share2 className="w-4 h-4" />
-          Share
+          <span>Share</span>
         </>
       )}
     </Button>

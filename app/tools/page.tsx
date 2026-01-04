@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useMemo } from "react"
 import Link from "next/link"
 import { Input } from "@/components/ui/input"
+import { ShareButton } from "@/components/ShareButton"
 import {
   LayoutGrid,
   Compass,
@@ -523,12 +524,21 @@ export default function ToolsPage() {
                           </span>
                         )}
                       </h3>
-                      <p className="text-gray-600 text-sm leading-relaxed flex-grow">{tool.description}</p>
-                      <div className="mt-4 pt-4 border-t border-gray-100">
-                        <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Get Started →</span>
+                        <p className="text-gray-600 text-sm leading-relaxed flex-grow">{tool.description}</p>
+                        <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between">
+                          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Get Started →</span>
+                          {!tool.external && (
+                            <div className="opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
+                              <ShareButton 
+                                toolName={tool.title} 
+                                toolId={tool.id} 
+                                className="!p-1.5 !h-auto !min-w-0 !border-0 !bg-transparent hover:!bg-gray-100"
+                              />
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  )
+                    )
 
                   if (tool.external) {
                     return (
@@ -656,8 +666,17 @@ export default function ToolsPage() {
                           )}
                         </h3>
                         <p className="text-gray-600 text-sm leading-relaxed flex-grow">{tool.description}</p>
-                        <div className="mt-4 pt-4 border-t border-gray-100">
+                        <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between">
                           <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Get Started →</span>
+                          {!tool.external && (
+                            <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                              <ShareButton 
+                                toolName={tool.title} 
+                                toolId={tool.id} 
+                                className="!p-1.5 !h-auto !min-w-0 !border-0 !bg-transparent hover:!bg-gray-100"
+                              />
+                            </div>
+                          )}
                         </div>
                       </div>
                     )
