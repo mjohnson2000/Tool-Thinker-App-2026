@@ -117,7 +117,7 @@ export default function EquityDilutionCalculatorPage() {
     } finally {
       setIsCalculating(false)
     }
-  }, [currentOwnership, optionPoolPercentage, fundingRoundsJson])
+  }, [currentOwnership, optionPoolPercentage, fundingRoundsJson]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-50 py-16">
