@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input"
 import { DisclaimerBanner } from "@/components/DisclaimerBanner"
 import { ShareButton } from "@/components/ShareButton"
 import { Gem } from "lucide-react"
-import { logger } from "@/lib/logger"
 
 interface Valuation {
   methodology: {
@@ -90,7 +89,7 @@ export default function ValuationCalculatorPage() {
       const data = await response.json()
       setValuation(data)
     } catch (err: any) {
-      logger.error("Calculation error:", err)
+      console.error("Calculation error:", err)
       setError(err.message || "Failed to calculate valuation. Please try again.")
     } finally {
       setIsCalculating(false)
