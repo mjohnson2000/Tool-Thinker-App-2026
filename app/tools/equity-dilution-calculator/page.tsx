@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -59,7 +59,7 @@ export default function EquityDilutionCalculatorPage() {
   const [dilution, setDilution] = useState<Dilution | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  const calculateDilution = useCallback(async () => {
+  async function calculateDilution() {
     setIsCalculating(true)
     setError(null)
     setDilution(null)
@@ -117,7 +117,7 @@ export default function EquityDilutionCalculatorPage() {
     } finally {
       setIsCalculating(false)
     }
-  }, [currentOwnership, optionPoolPercentage, fundingRoundsJson]);
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-50 py-16">
