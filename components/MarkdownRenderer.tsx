@@ -33,13 +33,14 @@ export function MarkdownRenderer({ content, className = "" }: MarkdownRendererPr
     const codeRegex = /`([^`]+)`/g
     match = null
     while ((match = codeRegex.exec(text)) !== null) {
-      const isInsideBold = tokens.some(t => t.start < match.index && match.index + match[0].length < t.end)
+      const currentMatch = match
+      const isInsideBold = tokens.some(t => t.start < currentMatch.index && currentMatch.index + currentMatch[0].length < t.end)
       if (!isInsideBold) {
         tokens.push({
           type: 'code',
-          content: match[1],
-          start: match.index,
-          end: match.index + match[0].length,
+          content: currentMatch[1],
+          start: currentMatch.index,
+          end: currentMatch.index + currentMatch[0].length,
         })
       }
     }
@@ -48,14 +49,15 @@ export function MarkdownRenderer({ content, className = "" }: MarkdownRendererPr
     const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g
     match = null
     while ((match = linkRegex.exec(text)) !== null) {
-      const isInsideOther = tokens.some(t => t.start < match.index && match.index + match[0].length < t.end)
+      const currentMatch = match
+      const isInsideOther = tokens.some(t => t.start < currentMatch.index && currentMatch.index + currentMatch[0].length < t.end)
       if (!isInsideOther) {
         tokens.push({
           type: 'link',
-          content: match[1],
-          url: match[2],
-          start: match.index,
-          end: match.index + match[0].length,
+          content: currentMatch[1],
+          url: currentMatch[2],
+          start: currentMatch.index,
+          end: currentMatch.index + currentMatch[0].length,
         })
       }
     }
@@ -64,13 +66,14 @@ export function MarkdownRenderer({ content, className = "" }: MarkdownRendererPr
     const italicRegex = /\*([^*]+?)\*/g
     match = null
     while ((match = italicRegex.exec(text)) !== null) {
-      const isInsideOther = tokens.some(t => t.start < match.index && match.index + match[0].length < t.end)
+      const currentMatch = match
+      const isInsideOther = tokens.some(t => t.start < currentMatch.index && currentMatch.index + currentMatch[0].length < t.end)
       if (!isInsideOther) {
         tokens.push({
           type: 'italic',
-          content: match[1],
-          start: match.index,
-          end: match.index + match[0].length,
+          content: currentMatch[1],
+          start: currentMatch.index,
+          end: currentMatch.index + currentMatch[0].length,
         })
       }
     }
