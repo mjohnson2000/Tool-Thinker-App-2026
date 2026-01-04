@@ -63,31 +63,9 @@ export default function EquityDilutionCalculatorPage() {
     setDilution(null)
 
     try {
-      // Validate current ownership
-      const ownershipNum = parseFloat(currentOwnership)
-      if (isNaN(ownershipNum) || ownershipNum < 0 || ownershipNum > 100) {
-        throw new Error("Current ownership must be a number between 0 and 100")
-      }
-
-      // Validate option pool if provided
-      if (optionPoolPercentage.trim()) {
-        const poolNum = parseFloat(optionPoolPercentage)
-        if (isNaN(poolNum) || poolNum < 0 || poolNum > 100) {
-          throw new Error("Option pool percentage must be a number between 0 and 100")
-        }
-      }
-
-      let fundingRounds: FundingRound[] | undefined = undefined
+      let fundingRounds = undefined
       if (fundingRoundsJson.trim()) {
-        try {
-          const parsed = JSON.parse(fundingRoundsJson)
-          if (!Array.isArray(parsed)) {
-            throw new Error("Funding rounds must be a JSON array")
-          }
-          fundingRounds = parsed
-        } catch (parseError: any) {
-          throw new Error(`Invalid JSON format for funding rounds: ${parseError.message}`)
-        }
+        fundingRounds = JSON.parse(fundingRoundsJson)
       }
 
       const response = await fetch("/api/equity-dilution-calculator/calculate", {
