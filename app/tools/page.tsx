@@ -669,7 +669,7 @@ export default function ToolsPage() {
                         <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between">
                           <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Get Started →</span>
                           {!tool.external && (
-                            <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
                               <ShareButton 
                                 toolName={tool.title} 
                                 toolId={tool.id} 
