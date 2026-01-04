@@ -1,0 +1,26 @@
+FIX FOR 502 ERROR - MISSING BUILD
+==================================
+
+The error shows: "Could not find a production build in the '.next' directory"
+
+Run these commands on your server:
+
+cd ~/tool-thinker
+pm2 stop tool-thinker
+pm2 delete tool-thinker
+npm run build
+pm2 start ecosystem.config.js
+pm2 save
+pm2 status
+
+This will:
+1. Stop and remove the broken PM2 process
+2. Build the production version of your app
+3. Start it fresh with PM2
+4. Save the PM2 configuration
+
+After running these, check:
+pm2 logs tool-thinker --lines 20
+
+You should see "✓ Ready" instead of build errors.
+

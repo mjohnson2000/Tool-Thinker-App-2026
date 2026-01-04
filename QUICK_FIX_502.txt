@@ -1,0 +1,42 @@
+QUICK FIX FOR 502 BAD GATEWAY
+=============================
+
+SSH into your server and run these commands in order:
+
+1. Check PM2 status:
+   pm2 status
+
+2. Check PM2 logs for errors:
+   pm2 logs tool-thinker --lines 50
+
+3. Try restarting PM2:
+   pm2 restart tool-thinker
+
+4. If that doesn't work, check if the app is actually running:
+   cd ~/tool-thinker
+   pm2 delete tool-thinker
+   npm run build
+   pm2 start ecosystem.config.js
+   pm2 save
+
+5. Check Nginx is running:
+   sudo systemctl status nginx
+
+6. Check if port 3000 is accessible:
+   curl http://localhost:3000
+
+7. If the app isn't starting, check the logs:
+   pm2 logs tool-thinker --err
+
+Common causes:
+- PM2 process crashed after update
+- Build failed or incomplete
+- Port 3000 not accessible
+- Nginx misconfiguration
+- Missing environment variables
+
+If still getting 502 after these steps, check:
+- PM2 logs for specific error messages
+- Nginx error logs: sudo tail -f /var/log/nginx/error.log
+- Make sure .env file has all required variables
+

@@ -26,6 +26,7 @@ import {
   Bot,
   Link2,
   Sparkles,
+  Megaphone,
 } from "lucide-react"
 
 interface Tool {
@@ -62,6 +63,7 @@ const getIcon = (iconName: string) => {
     "message-circle": MessageCircle,
     "bot": Bot,
     "link2": Link2,
+    "megaphone": Megaphone,
   }
   
   const IconComponent = iconMap[iconName] || FileText
@@ -142,6 +144,14 @@ export default function ToolsPage() {
       description: "Create a complete attention-to-scale marketing system based on proven Facebook Ads strategies",
       icon: "smartphone",
       href: "/tools/marketing-blueprint",
+      category: "Generator Tools",
+    },
+    {
+      id: "facebook-ads-generator",
+      title: "Facebook/Instagram Ads Generator",
+      description: "Create a complete attention-first advertising system optimized for Facebook and Instagram",
+      icon: "megaphone",
+      href: "/tools/facebook-ads-generator",
       category: "Generator Tools",
     },
     {
