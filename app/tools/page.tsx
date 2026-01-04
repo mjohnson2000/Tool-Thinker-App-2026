@@ -27,6 +27,7 @@ import {
   Link2,
   Sparkles,
   Megaphone,
+  PenTool,
 } from "lucide-react"
 
 interface Tool {
@@ -64,6 +65,7 @@ const getIcon = (iconName: string) => {
     "bot": Bot,
     "link2": Link2,
     "megaphone": Megaphone,
+    "pen-tool": PenTool,
   }
   
   const IconComponent = iconMap[iconName] || FileText
@@ -152,6 +154,14 @@ export default function ToolsPage() {
       description: "Create a complete attention-first advertising system optimized for Facebook and Instagram",
       icon: "megaphone",
       href: "/tools/facebook-ads-generator",
+      category: "Generator Tools",
+    },
+    {
+      id: "clarity-pro-editor",
+      title: "ClarityPro Editor",
+      description: "Make your text clearer, tighter, and more direct while keeping your original meaning and tone",
+      icon: "pen-tool",
+      href: "/tools/clarity-pro-editor",
       category: "Generator Tools",
     },
     {
