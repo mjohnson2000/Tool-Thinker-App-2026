@@ -5,7 +5,6 @@ import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { DisclaimerBanner } from "@/components/DisclaimerBanner"
-import { ShareButton } from "@/components/ShareButton"
 import { Gem } from "lucide-react"
 
 interface Valuation {
@@ -100,10 +99,7 @@ export default function ValuationCalculatorPage() {
     <div className="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-50 py-16">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Enhanced Hero Section */}
-        <div className="text-center mb-16 relative">
-          <div className="absolute top-0 right-0">
-            <ShareButton toolName="Valuation Calculator" toolId="valuation-calculator" />
-          </div>
+        <div className="text-center mb-16">
           <div className="inline-block mb-6">
             <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-green-600 to-green-800 flex items-center justify-center shadow-lg mx-auto">
               <Gem className="w-10 h-10 text-white" />
@@ -245,11 +241,9 @@ export default function ValuationCalculatorPage() {
                 <h2 className="text-2xl font-bold text-gray-900">Valuation Analysis</h2>
                 <p className="text-gray-600 mt-1">{valuation.methodology.primary_method}</p>
               </div>
-              <div className="flex gap-2">
-                <ShareButton toolName="Valuation Calculator" toolId="valuation-calculator" />
-                <Button
-                  onClick={() => {
-                    setValuation(null)
+              <Button
+                onClick={() => {
+                  setValuation(null)
                   setCurrentRevenue("")
                   setRevenueGrowthRate("")
                   setMarketSize("")

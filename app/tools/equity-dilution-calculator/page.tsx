@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { DisclaimerBanner } from "@/components/DisclaimerBanner"
-import { ShareButton } from "@/components/ShareButton"
 import { TrendingDown } from "lucide-react"
 
 interface FundingRound {
@@ -64,9 +63,31 @@ export default function EquityDilutionCalculatorPage() {
     setDilution(null)
 
     try {
-      let fundingRounds = undefined
+      // Validate current ownership
+      const ownershipNum = parseFloat(currentOwnership)
+      if (isNaN(ownershipNum) || ownershipNum < 0 || ownershipNum > 100) {
+        throw new Error("Current ownership must be a number between 0 and 100")
+      }
+
+      // Validate option pool if provided
+      if (optionPoolPercentage.trim()) {
+        const poolNum = parseFloat(optionPoolPercentage)
+        if (isNaN(poolNum) || poolNum < 0 || poolNum > 100) {
+          throw new Error("Option pool percentage must be a number between 0 and 100")
+        }
+      }
+
+      let fundingRounds: FundingRound[] | undefined = undefined
       if (fundingRoundsJson.trim()) {
-        fundingRounds = JSON.parse(fundingRoundsJson)
+        try {
+          const parsed = JSON.parse(fundingRoundsJson)
+          if (!Array.isArray(parsed)) {
+            throw new Error("Funding rounds must be a JSON array")
+          }
+          fundingRounds = parsed
+        } catch (parseError: any) {
+          throw new Error(`Invalid JSON format for funding rounds: ${parseError.message}`)
+        }
       }
 
       const response = await fetch("/api/equity-dilution-calculator/calculate", {
@@ -98,10 +119,7 @@ export default function EquityDilutionCalculatorPage() {
     <div className="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-50 py-16">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Enhanced Hero Section */}
-        <div className="text-center mb-16 relative">
-          <div className="absolute top-0 right-0">
-            <ShareButton toolName="Equity Dilution Calculator" toolId="equity-dilution-calculator" />
-          </div>
+        <div className="text-center mb-16">
           <div className="inline-block mb-6">
             <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-green-600 to-green-800 flex items-center justify-center shadow-lg mx-auto">
               <TrendingDown className="w-10 h-10 text-white" />
@@ -218,8 +236,6 @@ export default function EquityDilutionCalculatorPage() {
                   <h2 className="text-3xl font-bold mb-2">Equity Dilution Analysis</h2>
                   <p className="text-gray-300 text-lg">Initial Ownership: {dilution.initial_ownership.founder_percentage}</p>
                 </div>
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <ShareButton toolName="Equity Dilution Calculator" toolId="equity-dilution-calculator" className="bg-white text-gray-900 hover:bg-gray-100 font-semibold px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all" />
                 <Button
                   onClick={() => {
                     setDilution(null)
