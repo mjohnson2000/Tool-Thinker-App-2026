@@ -158,7 +158,7 @@ export default function ToolsPage() {
     },
     {
       id: "clarity-pro-editor",
-      title: "ClarityPro Editor",
+      title: "Clearer Convo",
       description: "Make your text clearer, tighter, and more direct while keeping your original meaning and tone",
       icon: "pen-tool",
       href: "/tools/clarity-pro-editor",

@@ -75,7 +75,7 @@ export default function ClarityProEditorPage() {
     const maxWidth = doc.internal.pageSize.width - 2 * margin
 
     doc.setFontSize(18)
-    doc.text("ClarityPro Editor - Revised Text", margin, yPos)
+    doc.text("Clearer Convo - Revised Text", margin, yPos)
     yPos += 10
 
     doc.setFontSize(10)
@@ -121,7 +121,7 @@ export default function ClarityProEditorPage() {
             </div>
           </div>
           <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 tracking-tight">
-            ClarityPro Editor
+            Clearer Convo
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
             Make your text clearer, tighter, and more direct while keeping your original meaning and tone
@@ -224,7 +224,7 @@ export default function ClarityProEditorPage() {
                 disabled={isGenerating || !text.trim()}
                 className="w-full bg-gray-900 hover:bg-gray-800 text-white py-6 text-lg font-semibold"
               >
-                {isGenerating ? "Editing Text..." : "Edit with ClarityPro"}
+                {isGenerating ? "Editing Text..." : "Edit with Clearer Convo"}
               </Button>
             </div>
           </div>
@@ -234,7 +234,7 @@ export default function ClarityProEditorPage() {
               <div className="flex justify-between items-start mb-6">
                 <div>
                   <h2 className="text-3xl font-bold text-gray-900 mb-2">Edited Text</h2>
-                  <p className="text-gray-600">ClarityPro improvements applied</p>
+                  <p className="text-gray-600">Clearer Convo improvements applied</p>
                 </div>
                 <div className="flex gap-2">
                   <Button onClick={downloadPDF} variant="outline" className="flex items-center gap-2">
