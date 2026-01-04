@@ -152,13 +152,10 @@ export default function Home() {
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {/* Framework Navigator Demo */}
             <Link href="/tools/framework-navigator" className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden">
-              <div className="relative h-48 bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden">
+              <div className="relative h-32 bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden">
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="text-center p-6">
-                    <div className="w-16 h-16 rounded-xl bg-white/90 flex items-center justify-center mb-3 shadow-lg">
-                      <Compass className="w-8 h-8 text-gray-700" />
-                    </div>
-                    <p className="text-sm font-semibold text-gray-700">Framework Navigator</p>
+                  <div className="w-16 h-16 rounded-xl bg-white/90 flex items-center justify-center shadow-lg">
+                    <Compass className="w-8 h-8 text-gray-700" />
                   </div>
                 </div>
                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
@@ -173,13 +170,10 @@ export default function Home() {
 
             {/* Business Plan Generator Demo */}
             <Link href="/tools/business-plan-generator" className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden">
-              <div className="relative h-48 bg-gradient-to-br from-blue-50 to-blue-100 overflow-hidden">
+              <div className="relative h-32 bg-gradient-to-br from-blue-50 to-blue-100 overflow-hidden">
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="text-center p-6">
-                    <div className="w-16 h-16 rounded-xl bg-white/90 flex items-center justify-center mb-3 shadow-lg">
-                      <FileCheck className="w-8 h-8 text-blue-700" />
-                    </div>
-                    <p className="text-sm font-semibold text-gray-700">Business Plan Generator</p>
+                  <div className="w-16 h-16 rounded-xl bg-white/90 flex items-center justify-center shadow-lg">
+                    <FileCheck className="w-8 h-8 text-blue-700" />
                   </div>
                 </div>
                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
@@ -194,13 +188,10 @@ export default function Home() {
 
             {/* Valuation Calculator Demo */}
             <Link href="/tools/valuation-calculator" className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden">
-              <div className="relative h-48 bg-gradient-to-br from-green-50 to-green-100 overflow-hidden">
+              <div className="relative h-32 bg-gradient-to-br from-green-50 to-green-100 overflow-hidden">
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="text-center p-6">
-                    <div className="w-16 h-16 rounded-xl bg-white/90 flex items-center justify-center mb-3 shadow-lg">
-                      <Gem className="w-8 h-8 text-green-700" />
-                    </div>
-                    <p className="text-sm font-semibold text-gray-700">Valuation Calculator</p>
+                  <div className="w-16 h-16 rounded-xl bg-white/90 flex items-center justify-center shadow-lg">
+                    <Gem className="w-8 h-8 text-green-700" />
                   </div>
                 </div>
                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
@@ -215,13 +206,10 @@ export default function Home() {
 
             {/* Pitch Deck Generator Demo */}
             <Link href="/tools/pitch-deck-generator" className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden">
-              <div className="relative h-48 bg-gradient-to-br from-purple-50 to-purple-100 overflow-hidden">
+              <div className="relative h-32 bg-gradient-to-br from-purple-50 to-purple-100 overflow-hidden">
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="text-center p-6">
-                    <div className="w-16 h-16 rounded-xl bg-white/90 flex items-center justify-center mb-3 shadow-lg">
-                      <Presentation className="w-8 h-8 text-purple-700" />
-                    </div>
-                    <p className="text-sm font-semibold text-gray-700">Pitch Deck Generator</p>
+                  <div className="w-16 h-16 rounded-xl bg-white/90 flex items-center justify-center shadow-lg">
+                    <Presentation className="w-8 h-8 text-purple-700" />
                   </div>
                 </div>
                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
@@ -236,13 +224,10 @@ export default function Home() {
 
             {/* Equity Dilution Calculator Demo */}
             <Link href="/tools/equity-dilution-calculator" className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden">
-              <div className="relative h-48 bg-gradient-to-br from-amber-50 to-amber-100 overflow-hidden">
+              <div className="relative h-32 bg-gradient-to-br from-amber-50 to-amber-100 overflow-hidden">
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="text-center p-6">
-                    <div className="w-16 h-16 rounded-xl bg-white/90 flex items-center justify-center mb-3 shadow-lg">
-                      <TrendingUp className="w-8 h-8 text-amber-700" />
-                    </div>
-                    <p className="text-sm font-semibold text-gray-700">Equity Dilution Calculator</p>
+                  <div className="w-16 h-16 rounded-xl bg-white/90 flex items-center justify-center shadow-lg">
+                    <TrendingUp className="w-8 h-8 text-amber-700" />
                   </div>
                 </div>
                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
@@ -257,13 +242,10 @@ export default function Home() {
 
             {/* Startup Plan Generator Demo */}
             <Link href="/tools/startup-plan-generator" className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden">
-              <div className="relative h-48 bg-gradient-to-br from-indigo-50 to-indigo-100 overflow-hidden">
+              <div className="relative h-32 bg-gradient-to-br from-indigo-50 to-indigo-100 overflow-hidden">
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="text-center p-6">
-                    <div className="w-16 h-16 rounded-xl bg-white/90 flex items-center justify-center mb-3 shadow-lg">
-                      <Rocket className="w-8 h-8 text-indigo-700" />
-                    </div>
-                    <p className="text-sm font-semibold text-gray-700">Startup Plan Generator</p>
+                  <div className="w-16 h-16 rounded-xl bg-white/90 flex items-center justify-center shadow-lg">
+                    <Rocket className="w-8 h-8 text-indigo-700" />
                   </div>
                 </div>
                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
