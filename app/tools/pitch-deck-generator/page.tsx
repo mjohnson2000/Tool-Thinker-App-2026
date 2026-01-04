@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { jsPDF } from "jspdf"
 import { Presentation } from "lucide-react"
 import { DisclaimerBanner } from "@/components/DisclaimerBanner"
+import { ShareButton } from "@/components/ShareButton"
 
 interface PitchDeck {
   company_name: string
@@ -325,6 +326,7 @@ export default function PitchDeckGeneratorPage() {
                 <p className="text-gray-600 mt-1 italic">{pitchDeck.tagline}</p>
               </div>
               <div className="flex gap-4">
+                <ShareButton toolName="Pitch Deck Generator" toolId="pitch-deck-generator" />
                 <Button onClick={downloadPitchDeck} variant="outline">
                   Download PDF
                 </Button>

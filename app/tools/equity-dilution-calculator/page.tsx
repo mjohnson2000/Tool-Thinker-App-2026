@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { DisclaimerBanner } from "@/components/DisclaimerBanner"
+import { ShareButton } from "@/components/ShareButton"
 import { TrendingDown } from "lucide-react"
 
 interface FundingRound {
@@ -236,6 +237,8 @@ export default function EquityDilutionCalculatorPage() {
                   <h2 className="text-3xl font-bold mb-2">Equity Dilution Analysis</h2>
                   <p className="text-gray-300 text-lg">Initial Ownership: {dilution.initial_ownership.founder_percentage}</p>
                 </div>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <ShareButton toolName="Equity Dilution Calculator" toolId="equity-dilution-calculator" className="bg-white text-gray-900 hover:bg-gray-100 font-semibold px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all" />
                 <Button
                   onClick={() => {
                     setDilution(null)

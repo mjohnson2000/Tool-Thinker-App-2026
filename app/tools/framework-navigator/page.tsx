@@ -5,6 +5,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { jsPDF } from "jspdf"
 import { DisclaimerBanner } from "@/components/DisclaimerBanner"
+import { ShareButton } from "@/components/ShareButton"
 import { Compass } from "lucide-react"
 
 interface RoadmapStep {
@@ -225,12 +226,15 @@ export default function FrameworkNavigatorPage() {
                   <h2 className="text-3xl font-bold mb-2">Your Framework Roadmap</h2>
                   <p className="text-gray-300 text-lg">Goal: {roadmap.goal}</p>
                 </div>
-                <Button
-                  onClick={downloadRoadmap}
-                  className="bg-white text-gray-900 hover:bg-gray-100 font-semibold px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all"
-                >
-                  📥 Download Roadmap
-                </Button>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <ShareButton toolName="Framework Navigator" toolId="framework-navigator" className="bg-white text-gray-900 hover:bg-gray-100 font-semibold px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all" />
+                  <Button
+                    onClick={downloadRoadmap}
+                    className="bg-white text-gray-900 hover:bg-gray-100 font-semibold px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all"
+                  >
+                    📥 Download Roadmap
+                  </Button>
+                </div>
               </div>
 
               <div className="mb-6 bg-white/10 rounded-xl p-6 backdrop-blur-sm">

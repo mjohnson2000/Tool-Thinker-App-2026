@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Users } from "lucide-react"
 import { DisclaimerBanner } from "@/components/DisclaimerBanner"
+import { ShareButton } from "@/components/ShareButton"
 
 interface TeamMember {
   name: string
@@ -216,9 +217,11 @@ export default function TeamCostCalculatorPage() {
                 <h2 className="text-2xl font-bold text-gray-900">Team Cost Analysis</h2>
                 <p className="text-gray-600 mt-1">{teamCost.cost_per_employee.length} team members</p>
               </div>
-              <Button
-                onClick={() => {
-                  setTeamCost(null)
+              <div className="flex gap-2">
+                <ShareButton toolName="Team Cost Calculator" toolId="team-cost-calculator" />
+                <Button
+                  onClick={() => {
+                    setTeamCost(null)
                   setTeamMembersJson("")
                   setLocation("")
                   setBenefitsPercentage("")

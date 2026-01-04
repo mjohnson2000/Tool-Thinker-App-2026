@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Clock } from "lucide-react"
 import { DisclaimerBanner } from "@/components/DisclaimerBanner"
+import { ShareButton } from "@/components/ShareButton"
 
 interface Runway {
   current_runway: {
@@ -199,9 +200,11 @@ export default function RunwayCalculatorPage() {
                 <h2 className="text-2xl font-bold text-gray-900">Runway Analysis</h2>
                 <p className="text-gray-600 mt-1">Net Burn Rate: {runway.current_runway.net_burn_rate}</p>
               </div>
-              <Button
-                onClick={() => {
-                  setRunway(null)
+              <div className="flex gap-2">
+                <ShareButton toolName="Runway Calculator" toolId="runway-calculator" />
+                <Button
+                  onClick={() => {
+                    setRunway(null)
                   setCurrentCash("")
                   setMonthlyBurnRate("")
                   setMonthlyRevenue("")

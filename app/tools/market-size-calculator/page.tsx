@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { TrendingUp } from "lucide-react"
 import { DisclaimerBanner } from "@/components/DisclaimerBanner"
+import { ShareButton } from "@/components/ShareButton"
 
 interface MarketSize {
   tam: {
@@ -199,9 +200,11 @@ export default function MarketSizeCalculatorPage() {
                 <h2 className="text-2xl font-bold text-gray-900">Market Size Analysis</h2>
                 <p className="text-gray-600 mt-1">TAM, SAM, and SOM Breakdown</p>
               </div>
-              <Button
-                onClick={() => {
-                  setMarketSize(null)
+              <div className="flex gap-2">
+                <ShareButton toolName="Market Size Calculator" toolId="market-size-calculator" />
+                <Button
+                  onClick={() => {
+                    setMarketSize(null)
                   setProductDescription("")
                   setTargetCustomer("")
                   setGeographicScope("")

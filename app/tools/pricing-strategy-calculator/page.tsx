@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { DollarSign } from "lucide-react"
 import { DisclaimerBanner } from "@/components/DisclaimerBanner"
+import { ShareButton } from "@/components/ShareButton"
 
 interface PricingStrategy {
   pricing_tiers: Array<{
@@ -217,9 +218,11 @@ export default function PricingStrategyCalculatorPage() {
                 <h2 className="text-2xl font-bold text-gray-900">Pricing Strategy Analysis</h2>
                 <p className="text-gray-600 mt-1">{pricing.pricing_analysis.recommended_approach}</p>
               </div>
-              <Button
-                onClick={() => {
-                  setPricing(null)
+              <div className="flex gap-2">
+                <ShareButton toolName="Pricing Strategy Calculator" toolId="pricing-strategy-calculator" />
+                <Button
+                  onClick={() => {
+                    setPricing(null)
                   setProductDescription("")
                   setCostStructure("")
                   setTargetMargin("")

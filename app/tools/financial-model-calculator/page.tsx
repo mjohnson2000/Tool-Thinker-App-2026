@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { jsPDF } from "jspdf"
 import { Calculator } from "lucide-react"
 import { DisclaimerBanner } from "@/components/DisclaimerBanner"
+import { ShareButton } from "@/components/ShareButton"
 
 interface FinancialModel {
   business_model: {
@@ -401,6 +402,7 @@ export default function FinancialModelCalculatorPage() {
                 <p className="text-gray-600 mt-1">{financialModel.business_model.revenue_model}</p>
               </div>
               <div className="flex gap-4">
+                <ShareButton toolName="Financial Model Calculator" toolId="financial-model-calculator" />
                 <Button onClick={downloadFinancialModel} variant="outline">
                   Download PDF
                 </Button>

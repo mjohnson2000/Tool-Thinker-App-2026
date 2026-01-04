@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { jsPDF } from "jspdf"
 import { Mic } from "lucide-react"
 import { DisclaimerBanner } from "@/components/DisclaimerBanner"
+import { ShareButton } from "@/components/ShareButton"
 
 interface CustomerInterviewGuide {
   business_context: {
@@ -327,6 +328,7 @@ export default function CustomerInterviewGeneratorPage() {
                 <p className="text-gray-600 mt-1">Framework: {guide.interview_framework.framework_name}</p>
               </div>
               <div className="flex gap-4">
+                <ShareButton toolName="Customer Interview Guide Generator" toolId="customer-interview-generator" />
                 <Button onClick={downloadGuide} variant="outline">
                   Download PDF
                 </Button>

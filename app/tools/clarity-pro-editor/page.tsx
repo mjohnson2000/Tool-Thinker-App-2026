@@ -8,6 +8,7 @@ import { jsPDF } from "jspdf"
 import { PenTool } from "lucide-react"
 import { DisclaimerBanner } from "@/components/DisclaimerBanner"
 import { MarkdownRenderer } from "@/components/MarkdownRenderer"
+import { ShareButton } from "@/components/ShareButton"
 
 export default function ClarityProEditorPage() {
   const [text, setText] = useState("")
@@ -189,6 +190,7 @@ export default function ClarityProEditorPage() {
                   <p className="text-gray-600">Clearer Convo improvements applied</p>
                 </div>
                 <div className="flex gap-2">
+                  <ShareButton toolName="Clearer Convo" toolId="clarity-pro-editor" />
                   <Button onClick={downloadPDF} variant="outline" className="flex items-center gap-2">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />

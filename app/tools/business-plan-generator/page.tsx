@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { jsPDF } from "jspdf"
 import { DisclaimerBanner } from "@/components/DisclaimerBanner"
+import { ShareButton } from "@/components/ShareButton"
 import { FileCheck } from "lucide-react"
 
 interface BusinessPlan {
@@ -530,6 +531,7 @@ export default function BusinessPlanGeneratorPage() {
                   <p className="text-gray-300 text-lg">{businessPlan.executive_summary.business_name}</p>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-3">
+                  <ShareButton toolName="Business Plan Generator" toolId="business-plan-generator" className="bg-white text-gray-900 hover:bg-gray-100 font-semibold px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all" />
                   <Button 
                     onClick={downloadBusinessPlan} 
                     className="bg-white text-gray-900 hover:bg-gray-100 font-semibold px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all"

@@ -372,6 +372,7 @@ export default function CompetitorAnalysisPage() {
                 <p className="text-gray-600 mt-1">{analysis.business_context.business_idea}</p>
               </div>
               <div className="flex gap-4">
+                <ShareButton toolName="Competitor Analysis Tool" toolId="competitor-analysis" />
                 <Button onClick={downloadAnalysis} variant="outline">
                   Download PDF
                 </Button>

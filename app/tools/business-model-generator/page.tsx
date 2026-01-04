@@ -242,12 +242,15 @@ export default function BusinessModelGeneratorPage() {
                   <h2 className="text-3xl font-bold text-gray-900 mb-2">Your Business Model</h2>
                   <p className="text-gray-600">Business Idea: {businessModel.business_idea}</p>
                 </div>
-                <Button
-                  onClick={downloadBusinessModel}
-                  className="bg-gray-900 hover:bg-gray-800"
-                >
-                  Download PDF
-                </Button>
+                <div className="flex gap-2">
+                  <ShareButton toolName="Business Model Generator" toolId="business-model-generator" />
+                  <Button
+                    onClick={downloadBusinessModel}
+                    className="bg-gray-900 hover:bg-gray-800"
+                  >
+                    Download PDF
+                  </Button>
+                </div>
               </div>
 
               <div className="mb-6">

@@ -8,6 +8,7 @@ import { jsPDF } from "jspdf"
 import { Sparkles } from "lucide-react"
 import type { AppliedSystemResult, BusinessContext, Platform } from "@/types/marketing"
 import { DisclaimerBanner } from "@/components/DisclaimerBanner"
+import { ShareButton } from "@/components/ShareButton"
 
 const PLATFORMS: Platform[] = ["tiktok", "instagram", "youtube", "facebook", "linkedin", "x", "other"]
 
@@ -444,9 +445,12 @@ export default function MarketingBlueprintPage() {
                   <h2 className="text-2xl font-semibold mb-2">Your Marketing Blueprint</h2>
                   <p className="text-gray-600">{result.system.context.brand_name}</p>
                 </div>
-                <Button onClick={downloadPDF} variant="outline">
-                  Download PDF
-                </Button>
+                <div className="flex gap-2">
+                  <ShareButton toolName="Marketing Blueprint" toolId="marketing-blueprint" />
+                  <Button onClick={downloadPDF} variant="outline">
+                    Download PDF
+                  </Button>
+                </div>
               </div>
 
               {/* Messaging Strategy */}

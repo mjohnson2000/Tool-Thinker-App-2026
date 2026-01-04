@@ -5,6 +5,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { DisclaimerBanner } from "@/components/DisclaimerBanner"
+import { ShareButton } from "@/components/ShareButton"
 import { Gem } from "lucide-react"
 
 interface Valuation {
@@ -241,9 +242,11 @@ export default function ValuationCalculatorPage() {
                 <h2 className="text-2xl font-bold text-gray-900">Valuation Analysis</h2>
                 <p className="text-gray-600 mt-1">{valuation.methodology.primary_method}</p>
               </div>
-              <Button
-                onClick={() => {
-                  setValuation(null)
+              <div className="flex gap-2">
+                <ShareButton toolName="Valuation Calculator" toolId="valuation-calculator" />
+                <Button
+                  onClick={() => {
+                    setValuation(null)
                   setCurrentRevenue("")
                   setRevenueGrowthRate("")
                   setMarketSize("")
