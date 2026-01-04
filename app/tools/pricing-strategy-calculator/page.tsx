@@ -4,6 +4,7 @@ import { useState } from "react"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { DollarSign } from "lucide-react"
 import { DisclaimerBanner } from "@/components/DisclaimerBanner"
 
 interface PricingStrategy {
@@ -103,6 +104,11 @@ export default function PricingStrategyCalculatorPage() {
     <div className="min-h-screen bg-gray-50 py-16">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
+          <div className="inline-block mb-6">
+            <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-green-600 to-green-800 flex items-center justify-center shadow-lg mx-auto">
+              <DollarSign className="w-10 h-10 text-white" />
+            </div>
+          </div>
           <h1 className="text-5xl font-bold text-gray-900 mb-4">Pricing Strategy Calculator</h1>
           <p className="text-xl text-gray-600">
             Determine optimal pricing based on costs, margins, and market positioning

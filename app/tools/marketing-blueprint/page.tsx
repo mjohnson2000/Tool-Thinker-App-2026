@@ -5,6 +5,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { jsPDF } from "jspdf"
+import { Sparkles } from "lucide-react"
 import type { AppliedSystemResult, BusinessContext, Platform } from "@/types/marketing"
 import { DisclaimerBanner } from "@/components/DisclaimerBanner"
 
@@ -214,6 +215,11 @@ export default function MarketingBlueprintPage() {
     <div className="min-h-screen bg-gray-50 py-16">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
+          <div className="inline-block mb-6">
+            <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center shadow-lg mx-auto">
+              <Sparkles className="w-10 h-10 text-white" />
+            </div>
+          </div>
           <h1 className="text-4xl font-bold text-gray-900 mb-4">Marketing Blueprint Generator</h1>
           <p className="text-xl text-gray-600">
             Create a complete "Attention-to-Scale" marketing system based on the proven Facebook Ads Blueprint

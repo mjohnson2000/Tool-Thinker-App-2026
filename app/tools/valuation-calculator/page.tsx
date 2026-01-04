@@ -101,7 +101,7 @@ export default function ValuationCalculatorPage() {
         {/* Enhanced Hero Section */}
         <div className="text-center mb-16">
           <div className="inline-block mb-6">
-            <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-gray-900 to-gray-700 flex items-center justify-center shadow-lg mx-auto">
+            <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-green-600 to-green-800 flex items-center justify-center shadow-lg mx-auto">
               <Gem className="w-10 h-10 text-white" />
             </div>
           </div>

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import { Rocket } from "lucide-react"
 
 interface Project {
   id: string
@@ -110,6 +111,11 @@ export default function StartupPlanGeneratorPage() {
     <div className="min-h-screen bg-gray-50 py-16">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8 text-center">
+          <div className="inline-block mb-6">
+            <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center shadow-lg mx-auto">
+              <Rocket className="w-10 h-10 text-white" />
+            </div>
+          </div>
           <h1 className="text-4xl font-bold text-gray-900 mb-2">Startup Plan Generator</h1>
           <p className="text-xl text-gray-600">
             Turn your messy idea into a validated, structured, executable startup plan

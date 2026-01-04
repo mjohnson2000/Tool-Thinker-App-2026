@@ -68,6 +68,41 @@ const getIcon = (iconName: string) => {
   return IconComponent
 }
 
+// Color mapping function for categories (matching front page)
+const getCategoryColors = (category: string) => {
+  const colorMap: Record<string, { bg: string; icon: string }> = {
+    "Framework Tools": {
+      bg: "bg-gradient-to-br from-gray-900 to-gray-700",
+      icon: "text-white"
+    },
+    "Generator Tools": {
+      bg: "bg-gradient-to-br from-blue-600 to-blue-800",
+      icon: "text-white"
+    },
+    "Calculator Tools": {
+      bg: "bg-gradient-to-br from-green-600 to-green-800",
+      icon: "text-white"
+    },
+    "Template Tools": {
+      bg: "bg-gradient-to-br from-purple-600 to-purple-800",
+      icon: "text-white"
+    },
+    "AI Tools": {
+      bg: "bg-gradient-to-br from-indigo-600 to-indigo-800",
+      icon: "text-white"
+    },
+    "External Tools": {
+      bg: "bg-gradient-to-br from-amber-600 to-amber-800",
+      icon: "text-white"
+    },
+  }
+  
+  return colorMap[category] || {
+    bg: "bg-gradient-to-br from-gray-900 to-gray-700",
+    icon: "text-white"
+  }
+}
+
 export default function ToolsPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
@@ -449,13 +484,14 @@ export default function ToolsPage() {
                 </div>
               <div className="grid md:grid-cols-2 gap-6 relative z-10">
                 {popularTools.map((tool) => {
+                  const colors = getCategoryColors(tool.category)
                   const content = (
                     <div className="flex flex-col h-full">
                       <div className="mb-6 flex items-start">
-                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-gray-100 to-gray-50 flex items-center justify-center shadow-sm border border-gray-200">
+                        <div className={`w-16 h-16 rounded-2xl ${colors.bg} flex items-center justify-center shadow-lg`}>
                           {(() => {
                             const IconComponent = getIcon(tool.icon)
-                            return <IconComponent className="w-8 h-8 text-gray-700" />
+                            return <IconComponent className={`w-8 h-8 ${colors.icon}`} />
                           })()}
                         </div>
                       </div>
@@ -580,13 +616,14 @@ export default function ToolsPage() {
                 {isExpanded && (
                   <div className="grid md:grid-cols-2 gap-6 relative z-10">
                     {visibleTools.map((tool) => {
+                    const colors = getCategoryColors(tool.category)
                     const content = (
                       <div className="flex flex-col h-full">
                         <div className="mb-6 flex items-start">
-                          <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-gray-100 to-gray-50 flex items-center justify-center shadow-sm border border-gray-200">
+                          <div className={`w-14 h-14 rounded-xl ${colors.bg} flex items-center justify-center shadow-lg`}>
                             {(() => {
                               const IconComponent = getIcon(tool.icon)
-                              return <IconComponent className="w-7 h-7 text-gray-700" />
+                              return <IconComponent className={`w-7 h-7 ${colors.icon}`} />
                             })()}
                           </div>
                         </div>
