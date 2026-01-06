@@ -4,6 +4,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useState, useEffect } from "react"
 import { Logo } from "@/components/Logo"
+import { UserMenu } from "@/components/UserMenu"
 
 export function Navigation() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -110,6 +111,9 @@ export function Navigation() {
                 </div>
               </div>
             </div>
+
+            {/* User Menu */}
+            <UserMenu />
           </div>
 
           {/* Mobile Menu Button */}
@@ -188,6 +192,9 @@ export function Navigation() {
                 <Link href="/books" onClick={handleLinkClick} className={`block py-2 hover:bg-gray-100 ${isActive('/books') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Books & Resources</Link>
                 <Link href="/contact" onClick={handleLinkClick} className={`block py-2 hover:bg-gray-100 ${isActive('/contact') ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'}`}>Contact Us</Link>
               </div>
+            </div>
+            <div className="px-4 py-2 border-t border-gray-200 mt-2">
+              <UserMenu />
             </div>
           </div>
         )}

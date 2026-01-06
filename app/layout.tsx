@@ -4,6 +4,7 @@ import { Navigation } from "@/components/Navigation"
 import { Footer } from "@/components/Footer"
 import { Chatbot } from "@/components/Chatbot"
 import { ErrorBoundary } from "@/components/ErrorBoundary"
+import { AuthProvider } from "@/contexts/AuthContext"
 
 export const metadata: Metadata = {
   title: "Tool Thinker - Tools That Help Founders Make Progress",
@@ -23,10 +24,12 @@ export default function RootLayout({
     <html lang="en">
       <body className="font-sans antialiased">
         <ErrorBoundary>
-          <Navigation />
-          <main>{children}</main>
-          <Footer />
-          <Chatbot />
+          <AuthProvider>
+            <Navigation />
+            <main>{children}</main>
+            <Footer />
+            <Chatbot />
+          </AuthProvider>
         </ErrorBoundary>
       </body>
     </html>

@@ -29,6 +29,7 @@ import {
   Sparkles,
   Megaphone,
   PenTool,
+  Lightbulb,
 } from "lucide-react"
 
 interface Tool {
@@ -67,6 +68,7 @@ const getIcon = (iconName: string) => {
     "link2": Link2,
     "megaphone": Megaphone,
     "pen-tool": PenTool,
+    "lightbulb": Lightbulb,
   }
   
   const IconComponent = iconMap[iconName] || FileText
@@ -85,7 +87,7 @@ const getCategoryColors = (category: string) => {
       icon: "text-white"
     },
     "Calculator Tools": {
-      bg: "bg-gradient-to-br from-gray-900 to-gray-800",
+      bg: "bg-gradient-to-br from-green-600 to-green-800",
       icon: "text-white"
     },
     "Template Tools": {
@@ -132,6 +134,14 @@ export default function ToolsPage() {
       icon: "compass",
       href: "/tools/framework-navigator",
       category: "Framework Tools",
+    },
+    {
+      id: "idea-discovery",
+      title: "Idea Discovery",
+      description: "Discover and refine your business idea through a guided, AI-powered journey from interests to solution",
+      icon: "lightbulb",
+      href: "/tools/idea-discovery",
+      category: "Generator Tools",
     },
     {
       id: "business-model-generator",
@@ -290,6 +300,7 @@ export default function ToolsPage() {
 
   // Popular tools (most used by users)
   const popularToolIds = [
+    "idea-discovery",
     "alpha-hustler",
     "framework-navigator",
     "business-model-generator",
@@ -311,7 +322,11 @@ export default function ToolsPage() {
   }
 
   const filteredTools = filterTools(tools)
-  const popularTools = filterTools(tools.filter((tool) => popularToolIds.includes(tool.id))).slice(0, 4)
+  const popularTools = filterTools(
+    popularToolIds
+      .map(id => tools.find(tool => tool.id === id))
+      .filter((tool): tool is Tool => tool !== undefined)
+  ).slice(0, 4)
   // Show all tools in their categories, even if they're popular (popular tools appear in both sections)
   const otherTools = filterTools(tools)
 
@@ -485,20 +500,20 @@ export default function ToolsPage() {
           <div className="space-y-14">
             {/* Popular Tools Section */}
             {popularTools.length > 0 && (
-              <div id="popular-tools" className="scroll-mt-20 bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl p-10 -mx-4 sm:-mx-6 lg:-mx-8 relative border-2 border-gray-700/50 shadow-xl">
+              <div id="popular-tools" className="scroll-mt-20 bg-gradient-to-br from-green-50 via-emerald-50/50 to-green-100/30 rounded-3xl p-10 -mx-4 sm:-mx-6 lg:-mx-8 relative border-2 border-green-200/50 shadow-xl">
                 {/* Decorative top accent */}
-                <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-gray-700 via-gray-700 to-gray-700 rounded-t-3xl"></div>
+                <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-green-400 via-emerald-400 to-green-400 rounded-t-3xl"></div>
                 
-                <div className="flex items-center gap-4 mb-8 pb-6 border-b-2 border-gray-700/50">
+                <div className="flex items-center gap-4 mb-8 pb-6 border-b-2 border-green-300/50">
                   <div className="flex items-center gap-4">
-                    <div className="w-2 h-12 bg-gradient-to-b from-gray-700 to-gray-800 rounded-full shadow-lg"></div>
+                    <div className="w-2 h-12 bg-gradient-to-b from-green-500 to-emerald-600 rounded-full shadow-lg"></div>
                     <div>
-                      <h2 className="text-4xl font-bold text-white mb-1">Popular Tools</h2>
-                      <p className="text-sm text-gray-300 font-medium">Most used by founders like you</p>
+                      <h2 className="text-4xl font-bold text-gray-900 mb-1">Popular Tools</h2>
+                      <p className="text-sm text-gray-600 font-medium">Most used by founders like you</p>
                     </div>
                   </div>
                   <div className="ml-auto flex items-center gap-2">
-                    <span className="px-5 py-2 bg-gradient-to-r from-gray-700 to-gray-800 text-white text-xs font-bold rounded-full border-2 border-gray-600 shadow-lg flex items-center gap-1.5">
+                    <span className="px-5 py-2 bg-gradient-to-r from-green-400 to-emerald-400 text-white text-xs font-bold rounded-full border-2 border-green-500 shadow-lg flex items-center gap-1.5">
                       <span className="text-base">⭐</span> Most Used
                     </span>
                   </div>
@@ -547,9 +562,9 @@ export default function ToolsPage() {
                         href={tool.href}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="group bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 border-2 border-gray-200 hover:border-gray-300 flex flex-col h-full transform hover:-translate-y-2 cursor-pointer relative z-20"
-                        >
-                        <div className="absolute top-4 right-4 w-3 h-3 bg-gray-700 rounded-full shadow-sm"></div>
+                        className="group bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 border-2 border-green-200 hover:border-green-300 flex flex-col h-full transform hover:-translate-y-2 cursor-pointer relative z-20"
+                      >
+                        <div className="absolute top-4 right-4 w-3 h-3 bg-green-400 rounded-full shadow-sm"></div>
                         {content}
                       </a>
                     )
@@ -559,9 +574,9 @@ export default function ToolsPage() {
                     <Link
                       key={tool.id}
                       href={tool.href}
-                        className="group bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 border-2 border-gray-200 hover:border-gray-300 flex flex-col h-full transform hover:-translate-y-2 cursor-pointer relative z-20"
-                        >
-                        <div className="absolute top-4 right-4 w-3 h-3 bg-gray-700 rounded-full shadow-sm"></div>
+                      className="group bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 border-2 border-green-200 hover:border-green-300 flex flex-col h-full transform hover:-translate-y-2 cursor-pointer relative z-20"
+                    >
+                      <div className="absolute top-4 right-4 w-3 h-3 bg-green-400 rounded-full shadow-sm"></div>
                       {content}
                     </Link>
                   )
@@ -730,8 +745,8 @@ export default function ToolsPage() {
           </div>
           <div className="grid md:grid-cols-3 gap-8">
             <div className="bg-white rounded-2xl p-8 shadow-md border border-gray-100 hover:shadow-lg transition-all duration-300">
-              <div className="w-12 h-12 bg-gradient-to-br from-gray-100 to-gray-50 rounded-xl flex items-center justify-center mb-4">
-                <svg className="w-6 h-6 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-blue-50 rounded-xl flex items-center justify-center mb-4">
+                <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
@@ -741,8 +756,8 @@ export default function ToolsPage() {
               </p>
             </div>
             <div className="bg-white rounded-2xl p-8 shadow-md border border-gray-100 hover:shadow-lg transition-all duration-300">
-              <div className="w-12 h-12 bg-gradient-to-br from-gray-100 to-gray-50 rounded-xl flex items-center justify-center mb-4">
-                <svg className="w-6 h-6 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-12 h-12 bg-gradient-to-br from-green-100 to-green-50 rounded-xl flex items-center justify-center mb-4">
+                <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
               </div>
