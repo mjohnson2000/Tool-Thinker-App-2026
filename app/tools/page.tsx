@@ -485,13 +485,13 @@ export default function ToolsPage() {
           <div className="space-y-14">
             {/* Popular Tools Section */}
             {popularTools.length > 0 && (
-              <div id="popular-tools" className="scroll-mt-20 bg-gradient-to-br from-green-50 via-emerald-50/50 to-green-100/30 rounded-3xl p-10 -mx-4 sm:-mx-6 lg:-mx-8 relative border-2 border-green-200/50 shadow-xl">
+              <div id="popular-tools" className="scroll-mt-20 bg-gradient-to-br from-blue-50 via-blue-50/50 to-blue-100/30 rounded-3xl p-10 -mx-4 sm:-mx-6 lg:-mx-8 relative border-2 border-blue-200/50 shadow-xl">
                 {/* Decorative top accent */}
-                <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-green-400 via-emerald-400 to-green-400 rounded-t-3xl"></div>
+                <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-blue-400 via-blue-400 to-blue-400 rounded-t-3xl"></div>
                 
-                <div className="flex items-center gap-4 mb-8 pb-6 border-b-2 border-green-300/50">
+                <div className="flex items-center gap-4 mb-8 pb-6 border-b-2 border-blue-300/50">
                   <div className="flex items-center gap-4">
-                    <div className="w-2 h-12 bg-gradient-to-b from-green-500 to-emerald-600 rounded-full shadow-lg"></div>
+                    <div className="w-2 h-12 bg-gradient-to-b from-blue-500 to-blue-600 rounded-full shadow-lg"></div>
                     <div>
                       <h2 className="text-4xl font-bold text-gray-900 mb-1">Popular Tools</h2>
                       <p className="text-sm text-gray-600 font-medium">Most used by founders like you</p>
