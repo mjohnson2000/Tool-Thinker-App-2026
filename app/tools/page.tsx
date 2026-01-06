@@ -493,8 +493,8 @@ export default function ToolsPage() {
                   <div className="flex items-center gap-4">
                     <div className="w-2 h-12 bg-gradient-to-b from-gray-700 to-gray-800 rounded-full shadow-lg"></div>
                     <div>
-                      <h2 className="text-4xl font-bold text-gray-900 mb-1">Popular Tools</h2>
-                      <p className="text-sm text-gray-600 font-medium">Most used by founders like you</p>
+                      <h2 className="text-4xl font-bold text-white mb-1">Popular Tools</h2>
+                      <p className="text-sm text-gray-300 font-medium">Most used by founders like you</p>
                     </div>
                   </div>
                   <div className="ml-auto flex items-center gap-2">
@@ -730,8 +730,8 @@ export default function ToolsPage() {
           </div>
           <div className="grid md:grid-cols-3 gap-8">
             <div className="bg-white rounded-2xl p-8 shadow-md border border-gray-100 hover:shadow-lg transition-all duration-300">
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-blue-50 rounded-xl flex items-center justify-center mb-4">
-                <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-12 h-12 bg-gradient-to-br from-gray-100 to-gray-50 rounded-xl flex items-center justify-center mb-4">
+                <svg className="w-6 h-6 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
@@ -741,8 +741,8 @@ export default function ToolsPage() {
               </p>
             </div>
             <div className="bg-white rounded-2xl p-8 shadow-md border border-gray-100 hover:shadow-lg transition-all duration-300">
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-blue-50 rounded-xl flex items-center justify-center mb-4">
-                <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-12 h-12 bg-gradient-to-br from-gray-100 to-gray-50 rounded-xl flex items-center justify-center mb-4">
+                <svg className="w-6 h-6 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
               </div>
