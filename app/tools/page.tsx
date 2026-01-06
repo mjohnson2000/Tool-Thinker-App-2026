@@ -85,7 +85,7 @@ const getCategoryColors = (category: string) => {
       icon: "text-white"
     },
     "Calculator Tools": {
-      bg: "bg-gradient-to-br from-green-600 to-green-800",
+      bg: "bg-gradient-to-br from-blue-600 to-blue-800",
       icon: "text-white"
     },
     "Template Tools": {
@@ -498,7 +498,7 @@ export default function ToolsPage() {
                     </div>
                   </div>
                   <div className="ml-auto flex items-center gap-2">
-                    <span className="px-5 py-2 bg-gradient-to-r from-green-400 to-emerald-400 text-white text-xs font-bold rounded-full border-2 border-green-500 shadow-lg flex items-center gap-1.5">
+                    <span className="px-5 py-2 bg-gradient-to-r from-blue-400 to-blue-400 text-white text-xs font-bold rounded-full border-2 border-blue-500 shadow-lg flex items-center gap-1.5">
                       <span className="text-base">⭐</span> Most Used
                     </span>
                   </div>
@@ -547,9 +547,9 @@ export default function ToolsPage() {
                         href={tool.href}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="group bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 border-2 border-green-200 hover:border-green-300 flex flex-col h-full transform hover:-translate-y-2 cursor-pointer relative z-20"
-                      >
-                        <div className="absolute top-4 right-4 w-3 h-3 bg-green-400 rounded-full shadow-sm"></div>
+                        className="group bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 border-2 border-blue-200 hover:border-blue-300 flex flex-col h-full transform hover:-translate-y-2 cursor-pointer relative z-20"
+                        >
+                        <div className="absolute top-4 right-4 w-3 h-3 bg-blue-400 rounded-full shadow-sm"></div>
                         {content}
                       </a>
                     )
@@ -559,9 +559,9 @@ export default function ToolsPage() {
                     <Link
                       key={tool.id}
                       href={tool.href}
-                      className="group bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 border-2 border-green-200 hover:border-green-300 flex flex-col h-full transform hover:-translate-y-2 cursor-pointer relative z-20"
-                    >
-                      <div className="absolute top-4 right-4 w-3 h-3 bg-green-400 rounded-full shadow-sm"></div>
+                        className="group bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 border-2 border-blue-200 hover:border-blue-300 flex flex-col h-full transform hover:-translate-y-2 cursor-pointer relative z-20"
+                        >
+                        <div className="absolute top-4 right-4 w-3 h-3 bg-blue-400 rounded-full shadow-sm"></div>
                       {content}
                     </Link>
                   )
@@ -741,8 +741,8 @@ export default function ToolsPage() {
               </p>
             </div>
             <div className="bg-white rounded-2xl p-8 shadow-md border border-gray-100 hover:shadow-lg transition-all duration-300">
-              <div className="w-12 h-12 bg-gradient-to-br from-green-100 to-green-50 rounded-xl flex items-center justify-center mb-4">
-                <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-blue-50 rounded-xl flex items-center justify-center mb-4">
+                <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
               </div>
