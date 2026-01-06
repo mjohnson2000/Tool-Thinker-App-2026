@@ -7,7 +7,7 @@ export default function AboutPage() {
         <div className="text-center mb-12">
           <h1 className="text-5xl font-bold text-gray-900 mb-4">About Tool Thinker</h1>
           <p className="text-xl text-gray-600">
-            Startup Tools For Quick Progress
+            Startup Business Tools For Quick Progress
           </p>
         </div>
 
