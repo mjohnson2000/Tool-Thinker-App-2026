@@ -69,11 +69,11 @@ export default function Home() {
               <p className="text-gray-300 text-sm md:text-base font-medium">Tools Available</p>
             </div>
             <div className="text-center">
-              <div className="text-5xl md:text-6xl font-bold mb-2 bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">10K+</div>
+              <div className="text-5xl md:text-6xl font-bold mb-2 bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">1K+</div>
               <p className="text-gray-300 text-sm md:text-base font-medium">Active Founders</p>
             </div>
             <div className="text-center">
-              <div className="text-5xl md:text-6xl font-bold mb-2 bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">100K+</div>
+              <div className="text-5xl md:text-6xl font-bold mb-2 bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">100+</div>
               <p className="text-gray-300 text-sm md:text-base font-medium">Plans Generated</p>
             </div>
             <div className="text-center">
