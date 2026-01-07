@@ -1,10 +1,13 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useSearchParams } from "next/navigation"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { DisclaimerBanner } from "@/components/DisclaimerBanner"
+import { AddToProjectButton } from "@/components/AddToProjectButton"
+import { useToolOutputWithProject } from "@/hooks/useToolOutputWithProject"
 import { Gem } from "lucide-react"
 
 interface Valuation {
@@ -59,6 +62,45 @@ export default function ValuationCalculatorPage() {
   const [isCalculating, setIsCalculating] = useState(false)
   const [valuation, setValuation] = useState<Valuation | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [savedOutputId, setSavedOutputId] = useState<string | null>(null)
+  
+  const searchParams = useSearchParams()
+  const projectId = searchParams.get('projectId')
+  const stepId = searchParams.get('stepId')
+  const { saveAndLink, saving, linked } = useToolOutputWithProject()
+
+  // Auto-save when valuation is calculated
+  useEffect(() => {
+    if (valuation && !savedOutputId) {
+      handleAutoSave()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [valuation])
+
+  async function handleAutoSave() {
+    if (!valuation) return
+    
+    const result = await saveAndLink({
+      toolId: "valuation-calculator",
+      toolName: "Valuation Calculator",
+      outputData: valuation,
+      inputData: {
+        currentRevenue,
+        revenueGrowthRate,
+        marketSize,
+        stage,
+        industry,
+        fundingAmount,
+        comparableCompanies,
+      },
+      projectId: projectId || undefined,
+      stepId: stepId || undefined,
+    })
+
+    if (result.success && result.outputId) {
+      setSavedOutputId(result.outputId)
+    }
+  }
 
   async function calculateValuation() {
     setIsCalculating(true)
@@ -236,26 +278,46 @@ export default function ValuationCalculatorPage() {
           </div>
         ) : (
           <div className="space-y-6">
-            <div className="bg-white rounded-lg p-6 shadow-sm flex justify-between items-center">
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900">Valuation Analysis</h2>
-                <p className="text-gray-600 mt-1">{valuation.methodology.primary_method}</p>
+            <div className="bg-white rounded-lg p-6 shadow-sm">
+              <div className="flex justify-between items-center mb-4">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">Valuation Analysis</h2>
+                  <p className="text-gray-600 mt-1">{valuation.methodology.primary_method}</p>
+                </div>
+                <div className="flex gap-2">
+                  {savedOutputId && (
+                    <AddToProjectButton
+                      toolOutputId={savedOutputId}
+                      toolId="valuation-calculator"
+                      toolName="Valuation Calculator"
+                      stepId={stepId || undefined}
+                    />
+                  )}
+                  <Button
+                    onClick={() => {
+                      setValuation(null)
+                      setSavedOutputId(null)
+                      setCurrentRevenue("")
+                      setRevenueGrowthRate("")
+                      setMarketSize("")
+                      setStage("")
+                      setIndustry("")
+                      setFundingAmount("")
+                      setComparableCompanies("")
+                    }}
+                    variant="outline"
+                  >
+                    Calculate New Valuation
+                  </Button>
+                </div>
               </div>
-              <Button
-                onClick={() => {
-                  setValuation(null)
-                  setCurrentRevenue("")
-                  setRevenueGrowthRate("")
-                  setMarketSize("")
-                  setStage("")
-                  setIndustry("")
-                  setFundingAmount("")
-                  setComparableCompanies("")
-                }}
-                variant="outline"
-              >
-                Calculate New Valuation
-              </Button>
+              {linked && (
+                <div className="p-3 bg-green-50 border-2 border-green-200 rounded-lg">
+                  <p className="text-green-800 text-sm font-medium">
+                    ✅ Added to project! {projectId && "Return to project to see it in context."}
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Methodology */}

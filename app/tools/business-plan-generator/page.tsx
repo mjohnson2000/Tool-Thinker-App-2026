@@ -1,13 +1,16 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useSearchParams } from "next/navigation"
+import { useAuth } from "@/contexts/AuthContext"
+import { supabase } from "@/lib/supabase/client"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { jsPDF } from "jspdf"
 import { DisclaimerBanner } from "@/components/DisclaimerBanner"
 import { ShareButton } from "@/components/ShareButton"
-import { FileCheck } from "lucide-react"
+import { FileCheck, Sparkles } from "lucide-react"
 
 interface BusinessPlan {
   executive_summary: {
@@ -105,6 +108,10 @@ interface BusinessPlan {
 }
 
 export default function BusinessPlanGeneratorPage() {
+  const searchParams = useSearchParams()
+  const { user } = useAuth()
+  const projectId = searchParams.get("projectId")
+  
   const [businessIdea, setBusinessIdea] = useState("")
   const [businessName, setBusinessName] = useState("")
   const [industry, setIndustry] = useState("")
@@ -113,6 +120,52 @@ export default function BusinessPlanGeneratorPage() {
   const [isGenerating, setIsGenerating] = useState(false)
   const [businessPlan, setBusinessPlan] = useState<BusinessPlan | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [loadingProject, setLoadingProject] = useState(false)
+  const [projectLoaded, setProjectLoaded] = useState(false)
+
+  // Load project data if projectId is present
+  useEffect(() => {
+    if (projectId && user) {
+      loadProjectData()
+    }
+  }, [projectId, user])
+
+  async function loadProjectData() {
+    if (!projectId || !user) return
+    
+    setLoadingProject(true)
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.access_token) {
+        setLoadingProject(false)
+        return
+      }
+
+      const res = await fetch(`/api/projects/${projectId}/export-data`, {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      })
+
+      if (res.ok) {
+        const data = await res.json()
+        const extracted = data.extracted || {}
+        
+        // Pre-fill form fields
+        if (extracted.businessIdea) setBusinessIdea(extracted.businessIdea)
+        if (extracted.companyName) setBusinessName(extracted.companyName)
+        if (extracted.targetMarket) setTargetMarket(extracted.targetMarket)
+        if (extracted.fundingAmount) setFundingNeeded(extracted.fundingAmount)
+        // Industry can be derived from business area or value prop
+        
+        setProjectLoaded(true)
+      }
+    } catch (error) {
+      console.error("Failed to load project data:", error)
+    } finally {
+      setLoadingProject(false)
+    }
+  }
 
   async function generateBusinessPlan() {
     if (!businessIdea.trim()) {
@@ -395,6 +448,24 @@ export default function BusinessPlanGeneratorPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-50 py-16">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Project Data Loaded Notification */}
+        {projectLoaded && projectId && (
+          <div className="mb-6 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border-2 border-blue-200 p-4 flex items-center gap-3">
+            <Sparkles className="w-5 h-5 text-blue-600 flex-shrink-0" />
+            <div className="flex-1">
+              <p className="text-sm font-medium text-gray-900">
+                ✨ Project data loaded! Your form has been pre-filled with data from your project.
+              </p>
+            </div>
+          </div>
+        )}
+        
+        {loadingProject && (
+          <div className="mb-6 bg-blue-50 rounded-lg border border-blue-200 p-4 text-center">
+            <p className="text-sm text-blue-700">Loading project data...</p>
+          </div>
+        )}
+        
         {/* Enhanced Hero Section */}
         <div className="text-center mb-16 relative">
           <div className="absolute top-0 right-0">

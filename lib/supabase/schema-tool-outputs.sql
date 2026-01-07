@@ -4,7 +4,7 @@
 -- Tool outputs table - stores generated content from tools
 CREATE TABLE IF NOT EXISTS tool_outputs (
   id TEXT PRIMARY KEY,
-  user_id TEXT NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   tool_id TEXT NOT NULL,
   tool_name TEXT NOT NULL,
   output_data JSONB NOT NULL,
@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS tool_outputs (
 -- Tool history table - tracks all tool usage
 CREATE TABLE IF NOT EXISTS tool_history (
   id TEXT PRIMARY KEY,
-  user_id TEXT NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   tool_id TEXT NOT NULL,
   tool_name TEXT NOT NULL,
   action TEXT NOT NULL, -- 'generated', 'viewed', 'exported', 'shared'
@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS tool_history (
 -- User preferences table
 CREATE TABLE IF NOT EXISTS user_preferences (
   id TEXT PRIMARY KEY,
-  user_id TEXT NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   preferences JSONB DEFAULT '{}',
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),

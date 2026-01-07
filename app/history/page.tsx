@@ -31,7 +31,16 @@ export default function HistoryPage() {
     } else if (!authLoading && !user) {
       setLoading(false)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, authLoading])
+
+  // Reload when filter changes
+  useEffect(() => {
+    if (user && !authLoading) {
+      loadHistory()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedTool])
 
   async function loadHistory() {
     try {

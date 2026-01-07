@@ -1,5 +1,7 @@
 import Link from "next/link"
 import Image from "next/image"
+import { NewUserHighlight } from "@/components/NewUserHighlight"
+import { PathSelectionCard } from "@/components/PathSelectionCard"
 import { 
   LayoutGrid, 
   Sparkles, 
@@ -14,7 +16,9 @@ import {
   Gem,
   Presentation,
   TrendingUp,
-  Rocket
+  Rocket,
+  Lightbulb,
+  FolderOpen
 } from "lucide-react"
 
 // Book purchase URL - using env utility for type safety
@@ -24,6 +28,7 @@ const BOOK_PURCHASE_URL = env.NEXT_PUBLIC_BOOK_PURCHASE_URL || "https://www.amaz
 export default function Home() {
   return (
     <div className="min-h-screen">
+      <NewUserHighlight />
       {/* Hero Section */}
       <section className="relative py-20 overflow-hidden">
         {/* Background Image */}
@@ -45,16 +50,49 @@ export default function Home() {
             <h1 className="text-5xl md:text-6xl font-bold text-white mb-6 drop-shadow-lg">
               Startup Business Tools
             </h1>
-            <p className="text-xl text-gray-100 mb-8 max-w-3xl mx-auto drop-shadow-md">
+            <p className="text-xl text-gray-100 mb-4 max-w-3xl mx-auto drop-shadow-md">
               For Quick Progress
             </p>
-            <div className="flex gap-4 justify-center">
-              <Link
+            <p className="text-lg text-gray-200 mb-8 max-w-2xl mx-auto drop-shadow-md">
+              What would you like to do first?
+            </p>
+            <div className="grid md:grid-cols-3 gap-4 max-w-4xl mx-auto mb-8">
+              {/* Path 1: I have a business idea */}
+              <PathSelectionCard
+                path="project"
+                title="I have a business idea"
+                description="Great! Let's create a project to plan it step-by-step."
+                benefits={["Structured planning", "Step-by-step guidance", "AI-powered insights"]}
+                iconName="folder"
+                iconColor="text-blue-600"
+                iconBgColor="bg-blue-100"
+                href="/dashboard"
+              />
+
+              {/* Path 2: I need to discover an idea */}
+              <PathSelectionCard
+                path="discovery"
+                title="I need to discover an idea"
+                description="Perfect! Our Idea Discovery tool will help you find business ideas from scratch based on your interests and goals."
+                benefits={["AI-powered suggestions", "Personalized opportunities", "Guided journey"]}
+                iconName="lightbulb"
+                iconColor="text-yellow-600"
+                iconBgColor="bg-yellow-100"
+                href="/tools/idea-discovery"
+                className="bg-yellow-500/95 border-yellow-400/30 hover:bg-yellow-500 hover:border-yellow-400"
+              />
+
+              {/* Path 3: Just explore tools */}
+              <PathSelectionCard
+                path="explore"
+                title="I just want to explore tools"
+                description="No problem! Browse our 50+ tools to see what's available."
+                benefits={["50+ tools available", "Calculators & generators", "Use anytime"]}
+                iconName="compass"
+                iconColor="text-green-600"
+                iconBgColor="bg-green-100"
                 href="/tools"
-                className="px-8 py-3 bg-white text-gray-900 rounded-lg hover:bg-gray-100 transition text-lg font-semibold shadow-xl hover:shadow-2xl transform hover:scale-105"
-              >
-                Explore Tools
-              </Link>
+              />
             </div>
           </div>
         </div>
@@ -241,20 +279,20 @@ export default function Home() {
               </div>
             </Link>
 
-            {/* Startup Plan Generator Demo */}
-            <Link href="/tools/startup-plan-generator" className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden">
-              <div className="relative h-32 bg-gradient-to-br from-indigo-50 to-indigo-100 overflow-hidden">
+            {/* Idea Discovery Demo */}
+            <Link href="/tools/idea-discovery" className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden">
+              <div className="relative h-32 bg-gradient-to-br from-yellow-50 to-orange-100 overflow-hidden">
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="w-16 h-16 rounded-xl bg-white/90 flex items-center justify-center shadow-lg">
-                    <Rocket className="w-8 h-8 text-indigo-700" />
+                    <Lightbulb className="w-8 h-8 text-yellow-700" />
                   </div>
                 </div>
                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
               </div>
               <div className="p-6">
-                <h3 className="text-xl font-bold text-gray-900 mb-2">Startup Plan Generator</h3>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">Idea Discovery</h3>
                 <p className="text-gray-600 text-sm">
-                  Comprehensive planning system that guides you through your entire startup journey
+                  Discover your next business idea through a guided, AI-powered journey from interests to solution
                 </p>
               </div>
             </Link>

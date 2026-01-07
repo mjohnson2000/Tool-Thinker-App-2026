@@ -1,14 +1,19 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { DisclaimerBanner } from "@/components/DisclaimerBanner"
 import { ShareButton } from "@/components/ShareButton"
-import { Lightbulb, ArrowRight, ArrowLeft, CheckCircle2 } from "lucide-react"
+import { DiscoveryOnboarding } from "@/components/DiscoveryOnboarding"
+import { Lightbulb, ArrowRight, ArrowLeft, CheckCircle2, Rocket } from "lucide-react"
 import { jsPDF } from "jspdf"
 import { useSaveToolOutput } from "@/hooks/useSaveToolOutput"
+import { useAuth } from "@/contexts/AuthContext"
+import { supabase } from "@/lib/supabase/client"
 
 // Types
 interface IdeaType {
@@ -121,6 +126,8 @@ const IDEA_TYPES: IdeaType[] = [
 ]
 
 export default function IdeaDiscoveryPage() {
+  const router = useRouter()
+  const { user } = useAuth()
   const [currentStep, setCurrentStep] = useState<Step>("landing")
   const [data, setData] = useState<DiscoveryData>({
     entryPoint: null,
@@ -142,6 +149,7 @@ export default function IdeaDiscoveryPage() {
     solutions?: Solution[]
   }>({})
   const [saved, setSaved] = useState(false)
+  const [isCreatingProject, setIsCreatingProject] = useState(false)
 
   const { saveOutput, saving } = useSaveToolOutput()
 
@@ -374,7 +382,7 @@ Return ONLY a JSON array with exactly 6 objects. Each object must have id, title
     doc.save("idea-discovery.pdf")
   }
 
-  function reset() {
+  function resetDiscovery() {
     setCurrentStep("landing")
     setData({
       entryPoint: null,
@@ -389,13 +397,69 @@ Return ONLY a JSON array with exactly 6 objects. Each object must have id, title
     })
     setGeneratedOptions({})
     setError(null)
+    setSaved(false)
+  }
+
+  async function handleCreateProject() {
+    if (!user) {
+      router.push("/signin")
+      return
+    }
+
+    if (!data.selectedBusinessArea || !data.selectedCustomer || !data.selectedJob || !data.selectedSolution) {
+      setError("Please complete the discovery journey first")
+      return
+    }
+
+    setIsCreatingProject(true)
+    setError(null)
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.access_token) {
+        throw new Error("Not authenticated")
+      }
+
+      const projectName = data.selectedBusinessArea.title || "My Startup Idea"
+
+      const res = await fetch("/api/projects/from-discovery", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          projectName,
+          discoveryData: {
+            selectedBusinessArea: data.selectedBusinessArea,
+            selectedCustomer: data.selectedCustomer,
+            selectedJob: data.selectedJob,
+            selectedSolution: data.selectedSolution,
+          },
+        }),
+      })
+
+      const result = await res.json()
+
+      if (!res.ok) {
+        throw new Error(result.error || "Failed to create project")
+      }
+
+      // Navigate to the project overview
+      router.push(`/project/${result.project.id}/overview?fromDiscovery=true`)
+    } catch (err: any) {
+      setError(err.message || "Failed to create project. Please try again.")
+    } finally {
+      setIsCreatingProject(false)
+    }
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-50 py-16">
+      <DiscoveryOnboarding />
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="text-center mb-12 relative">
+        <div id="idea-discovery-header" className="text-center mb-12 relative">
           <div className="absolute top-0 right-0">
             <ShareButton toolName="Idea Discovery" toolId="idea-discovery" />
           </div>
@@ -408,14 +472,14 @@ Return ONLY a JSON array with exactly 6 objects. Each object must have id, title
             Idea Discovery
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-            Discover and refine your business idea through a guided, AI-powered journey
+            Discover your next business idea through a guided, AI-powered journey from interests to solution
           </p>
           <div className="w-24 h-1 bg-gradient-to-r from-gray-900 to-gray-700 mx-auto mt-6 rounded-full"></div>
         </div>
 
         {/* Progress Bar */}
         {currentStep !== "landing" && currentStep !== "summary" && (
-          <div className="mb-8">
+          <div id="idea-discovery-progress" className="mb-8">
             <div className="flex justify-between text-sm text-gray-600 mb-2">
               <span>Step {currentStepIndex} of {STEPS.length - 2}</span>
               <span>{Math.round(progress)}% Complete</span>
@@ -437,29 +501,35 @@ Return ONLY a JSON array with exactly 6 objects. Each object must have id, title
         )}
 
         {/* Step Content */}
-        <div className="bg-white rounded-2xl p-8 md:p-10 shadow-xl border-2 border-gray-100">
+        <div id="idea-discovery-content" className="bg-white rounded-2xl p-8 md:p-10 shadow-xl border-2 border-gray-100">
           {/* Landing Step */}
           {currentStep === "landing" && (
             <div className="text-center space-y-8">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">How can we help you today?</h2>
-              <div className="grid md:grid-cols-2 gap-6">
-                <button
-                  onClick={() => handleEntryPoint("need-idea")}
-                  className="p-8 bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl hover:shadow-xl transition-all border-2 border-blue-200 hover:border-blue-400 text-left group"
-                >
-                  <div className="text-4xl mb-4">💡</div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">I need an idea</h3>
-                  <p className="text-gray-600">Start from scratch and discover business ideas that match your interests and goals</p>
-                </button>
-                <button
-                  onClick={() => handleEntryPoint("have-idea")}
-                  className="p-8 bg-gradient-to-br from-green-50 to-green-100 rounded-2xl hover:shadow-xl transition-all border-2 border-green-200 hover:border-green-400 text-left group"
-                >
-                  <div className="text-4xl mb-4">🔍</div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">I have an idea</h3>
-                  <p className="text-gray-600">Refine and validate your existing idea with AI-powered insights</p>
-                </button>
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">Ready to discover your next business idea?</h2>
+              <p className="text-lg text-gray-600 mb-6 max-w-2xl mx-auto">
+                This tool helps you find business ideas from scratch based on your interests, goals, and situation.
+              </p>
+              
+              <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-6 mb-6 max-w-2xl mx-auto">
+                <p className="text-sm text-blue-800">
+                  <strong>Already have an idea?</strong> Create a project instead to plan and validate it step-by-step.
+                </p>
+                <Link href="/dashboard" className="text-sm text-blue-600 hover:text-blue-800 font-medium mt-2 inline-block">
+                  Go to Dashboard →
+                </Link>
               </div>
+
+              <button
+                onClick={() => handleEntryPoint("need-idea")}
+                className="w-full max-w-md mx-auto p-8 bg-gradient-to-br from-yellow-50 to-orange-100 rounded-2xl hover:shadow-xl transition-all border-2 border-yellow-300 hover:border-yellow-500 text-left group"
+              >
+                <div className="text-4xl mb-4 text-center">💡</div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-2 text-center">I need an idea</h3>
+                <p className="text-gray-600 text-center">Start from scratch and discover business ideas that match your interests and goals</p>
+                <div className="mt-4 flex items-center justify-center">
+                  <ArrowRight className="w-5 h-5 text-gray-600 group-hover:translate-x-1 transition-transform" />
+                </div>
+              </button>
             </div>
           )}
 
@@ -919,6 +989,39 @@ Return ONLY a JSON array with exactly 6 objects. Each object must have id, title
                 )}
               </div>
 
+              {/* Create Project CTA */}
+              <div className="mt-8 mb-6 pt-6 border-t-2 border-gray-200">
+                <div className="bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 rounded-xl p-6 border-2 border-blue-200">
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center flex-shrink-0">
+                      <Rocket className="w-6 h-6 text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-xl font-bold text-gray-900 mb-2">
+                        Ready to plan your idea? 🚀
+                      </h3>
+                      <p className="text-gray-600 mb-4">
+                        Create a project to turn this idea into a structured startup plan. We'll pre-fill your first step with the discovery data you've gathered.
+                      </p>
+                      <Button 
+                        onClick={handleCreateProject}
+                        disabled={isCreatingProject}
+                        className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+                      >
+                        {isCreatingProject ? (
+                          <>Creating Project...</>
+                        ) : (
+                          <>
+                            <Rocket className="w-4 h-4 mr-2" />
+                            Create Project from This Idea
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               {/* Export Buttons */}
               <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t-2 border-gray-200">
                 <Button onClick={downloadJSON} variant="outline" className="flex-1">
@@ -927,7 +1030,7 @@ Return ONLY a JSON array with exactly 6 objects. Each object must have id, title
                 <Button onClick={downloadPDF} variant="outline" className="flex-1">
                   Download PDF
                 </Button>
-                <Button onClick={reset} className="flex-1">
+                <Button onClick={resetDiscovery} variant="outline" className="flex-1">
                   Start Over
                 </Button>
               </div>

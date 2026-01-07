@@ -1,11 +1,14 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useSearchParams } from "next/navigation"
+import { useAuth } from "@/contexts/AuthContext"
+import { supabase } from "@/lib/supabase/client"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { jsPDF } from "jspdf"
-import { Megaphone } from "lucide-react"
+import { Megaphone, Sparkles } from "lucide-react"
 import { DisclaimerBanner } from "@/components/DisclaimerBanner"
 import { ShareButton } from "@/components/ShareButton"
 
@@ -25,6 +28,10 @@ interface BusinessContext {
 }
 
 export default function FacebookAdsGeneratorPage() {
+  const searchParams = useSearchParams()
+  const { user } = useAuth()
+  const projectId = searchParams.get("projectId")
+  
   const [context, setContext] = useState<Partial<BusinessContext>>({
     brand_name: "",
     offer_summary: "",
@@ -51,6 +58,56 @@ export default function FacebookAdsGeneratorPage() {
   const [isGenerating, setIsGenerating] = useState(false)
   const [result, setResult] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [loadingProject, setLoadingProject] = useState(false)
+  const [projectLoaded, setProjectLoaded] = useState(false)
+
+  // Load project data if projectId is present
+  useEffect(() => {
+    if (projectId && user) {
+      loadProjectData()
+    }
+  }, [projectId, user])
+
+  async function loadProjectData() {
+    if (!projectId || !user) return
+    
+    setLoadingProject(true)
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.access_token) {
+        setLoadingProject(false)
+        return
+      }
+
+      const res = await fetch(`/api/projects/${projectId}/export-data`, {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      })
+
+      if (res.ok) {
+        const data = await res.json()
+        const extracted = data.extracted || {}
+        
+        // Pre-fill form fields
+        if (extracted.companyName) {
+          setContext(prev => ({ ...prev, brand_name: extracted.companyName }))
+        }
+        if (extracted.valueProposition) {
+          setContext(prev => ({ ...prev, offer_summary: extracted.valueProposition }))
+        }
+        if (extracted.targetMarket) {
+          setContext(prev => ({ ...prev, target_customer: extracted.targetMarket }))
+        }
+        
+        setProjectLoaded(true)
+      }
+    } catch (error) {
+      console.error("Failed to load project data:", error)
+    } finally {
+      setLoadingProject(false)
+    }
+  }
 
   const PLATFORMS = ["facebook", "instagram", "messenger", "audience_network"]
 
@@ -220,6 +277,24 @@ export default function FacebookAdsGeneratorPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-50 py-16">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Project Data Loaded Notification */}
+        {projectLoaded && projectId && (
+          <div className="mb-6 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border-2 border-blue-200 p-4 flex items-center gap-3">
+            <Sparkles className="w-5 h-5 text-blue-600 flex-shrink-0" />
+            <div className="flex-1">
+              <p className="text-sm font-medium text-gray-900">
+                ✨ Project data loaded! Your form has been pre-filled with data from your project.
+              </p>
+            </div>
+          </div>
+        )}
+        
+        {loadingProject && (
+          <div className="mb-6 bg-blue-50 rounded-lg border border-blue-200 p-4 text-center">
+            <p className="text-sm text-blue-700">Loading project data...</p>
+          </div>
+        )}
+        
         {/* Enhanced Hero Section */}
         <div className="text-center mb-16 relative">
           <div className="absolute top-0 right-0">

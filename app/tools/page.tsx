@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useMemo } from "react"
 import Link from "next/link"
 import { Input } from "@/components/ui/input"
 import { ShareButton } from "@/components/ShareButton"
+import { ToolsOnboarding } from "@/components/ToolsOnboarding"
 import {
   LayoutGrid,
   Compass,
@@ -30,6 +31,7 @@ import {
   Megaphone,
   PenTool,
   Lightbulb,
+  Target,
 } from "lucide-react"
 
 interface Tool {
@@ -69,6 +71,7 @@ const getIcon = (iconName: string) => {
     "megaphone": Megaphone,
     "pen-tool": PenTool,
     "lightbulb": Lightbulb,
+    "target": Target,
   }
   
   const IconComponent = iconMap[iconName] || FileText
@@ -197,6 +200,14 @@ export default function ToolsPage() {
       description: "Generate comprehensive interview questions and scripts to validate your business idea with customers",
       icon: "mic",
       href: "/tools/customer-interview-generator",
+      category: "Generator Tools",
+    },
+    {
+      id: "customer-validation-tracker",
+      title: "Customer Validation Tracker",
+      description: "Track customer interviews, record insights, and validate your business assumptions",
+      icon: "target",
+      href: "/tools/customer-validation-tracker",
       category: "Generator Tools",
     },
     {
@@ -420,8 +431,9 @@ export default function ToolsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-50 py-16">
+      <ToolsOnboarding />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
+        <div id="tools-header" className="text-center mb-16">
           <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 tracking-tight">
             Tools
           </h1>
@@ -453,7 +465,7 @@ export default function ToolsPage() {
           </div>
 
           {/* Enhanced Category Filter Chips */}
-          <div className="flex flex-wrap justify-center gap-2.5 mb-10 px-2">
+          <div id="tool-categories" className="flex flex-wrap justify-center gap-2.5 mb-10 px-2">
             <button
               onClick={() => handleCategoryFilter(null)}
               className={`px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 transform hover:scale-105 whitespace-nowrap ${

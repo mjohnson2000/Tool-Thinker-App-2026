@@ -7,6 +7,7 @@ interface DbClient {
   getProjects: (userId: string) => Promise<any[]>
   getProjectById: (projectId: string) => Promise<any | null>
   updateProject: (projectId: string, updates: Partial<any>) => Promise<any>
+  deleteProject: (projectId: string) => Promise<void>
   
   // Steps
   getStep: (projectId: string, stepKey: string) => Promise<any | null>
@@ -87,6 +88,17 @@ export const db: DbClient = {
     if (error) throw new Error(`Failed to update project: ${error.message}`)
     if (!data) throw new Error("Project not found")
     return data
+  },
+
+  deleteProject: async (projectId: string) => {
+    // Delete related data first (cascade should handle this, but being explicit)
+    // Note: Supabase RLS and foreign key constraints should handle cascading deletes
+    const { error } = await supabase
+      .from('projects')
+      .delete()
+      .eq('id', projectId)
+    
+    if (error) throw new Error(`Failed to delete project: ${error.message}`)
   },
 
   getStep: async (projectId: string, stepKey: string) => {
