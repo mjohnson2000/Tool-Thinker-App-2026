@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
 import { OpenAI } from "openai"
+import { env } from "@/lib/env"
+import { logger } from "@/lib/logger"
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: env.OPENAI_API_KEY,
 })
 
 interface BusinessContext {
@@ -32,7 +34,7 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY === "your_openai_key_here") {
+    if (!env.OPENAI_API_KEY || env.OPENAI_API_KEY === "your_openai_key_here") {
       return NextResponse.json(
         { error: "OpenAI API key not configured" },
         { status: 500 }
@@ -213,7 +215,7 @@ ${context.budget_range ? `- Budget Range: ${context.budget_range}` : ""}
 Generate a complete attention-first advertising system following all the rules and formats specified. Return the output in plain text format with all 12 required sections.`
 
     const completion = await openai.chat.completions.create({
-      model: process.env.OPENAI_MODEL || "gpt-4o-mini",
+      model: env.OPENAI_MODEL || "gpt-4o-mini",
       messages: [
         {
           role: "system",
@@ -238,10 +240,11 @@ Generate a complete attention-first advertising system following all the rules a
     }
 
     return NextResponse.json({ response: content })
-  } catch (error: any) {
-    console.error("Facebook Ads generator error:", error)
+  } catch (error: unknown) {
+    logger.error("Facebook Ads generator error:", error)
+    const errorMessage = error instanceof Error ? error.message : "Failed to generate Facebook Ads system"
     return NextResponse.json(
-      { error: error.message || "Failed to generate Facebook Ads system" },
+      { error: errorMessage },
       { status: 500 }
     )
   }

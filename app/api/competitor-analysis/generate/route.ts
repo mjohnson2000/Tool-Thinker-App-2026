@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
 import { OpenAI } from "openai"
+import { env } from "@/lib/env"
+import { logger } from "@/lib/logger"
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: env.OPENAI_API_KEY,
 })
 
 interface CompetitorAnalysis {
@@ -79,8 +81,8 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY === "your_openai_key_here") {
-      console.error("OpenAI API key not configured")
+    if (!env.OPENAI_API_KEY || env.OPENAI_API_KEY === "your_openai_key_here") {
+      logger.error("OpenAI API key not configured")
       return NextResponse.json(
         { error: "OpenAI API key not configured. Please set OPENAI_API_KEY in .env" },
         { status: 500 }
@@ -212,7 +214,7 @@ Return a JSON object with this exact structure:
 Be thorough, realistic, and actionable. Use specific competitor names when possible.`
 
     const completion = await openai.chat.completions.create({
-      model: process.env.OPENAI_MODEL || "gpt-4o-mini",
+      model: env.OPENAI_MODEL || "gpt-4o-mini",
       messages: [
         {
           role: "system",
@@ -241,12 +243,12 @@ Be thorough, realistic, and actionable. Use specific competitor names when possi
 
       return NextResponse.json(analysis)
     } catch (parseError) {
-      console.error("Failed to parse competitor analysis:", parseError)
-      console.error("Raw AI response:", content)
+      logger.error("Failed to parse competitor analysis:", parseError)
+      logger.error("Raw AI response:", content)
       
       try {
         const repairCompletion = await openai.chat.completions.create({
-          model: process.env.OPENAI_MODEL || "gpt-4o-mini",
+          model: env.OPENAI_MODEL || "gpt-4o-mini",
           messages: [
             {
               role: "user",
@@ -260,17 +262,18 @@ Be thorough, realistic, and actionable. Use specific competitor names when possi
         const analysis: CompetitorAnalysis = JSON.parse(repaired)
         return NextResponse.json(analysis)
       } catch (repairError) {
-        console.error("Failed to repair JSON:", repairError)
+        logger.error("Failed to repair JSON:", repairError)
         return NextResponse.json(
           { error: "Failed to generate competitor analysis. Please try again." },
           { status: 500 }
         )
       }
     }
-  } catch (error: any) {
-    console.error("Competitor Analysis error:", error)
+  } catch (error: unknown) {
+    logger.error("Competitor Analysis error:", error)
+    const errorMessage = error instanceof Error ? error.message : "Failed to generate competitor analysis"
     return NextResponse.json(
-      { error: error.message || "Failed to generate competitor analysis" },
+      { error: errorMessage },
       { status: 500 }
     )
   }

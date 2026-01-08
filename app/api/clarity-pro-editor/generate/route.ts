@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
 import { OpenAI } from "openai"
+import { env } from "@/lib/env"
+import { logger } from "@/lib/logger"
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: env.OPENAI_API_KEY,
 })
 
 interface EditorRequest {
@@ -24,7 +26,7 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY === "your_openai_key_here") {
+    if (!env.OPENAI_API_KEY || env.OPENAI_API_KEY === "your_openai_key_here") {
       return NextResponse.json(
         { error: "OpenAI API key not configured" },
         { status: 500 }
@@ -139,7 +141,7 @@ ${format ? `\nFormat: ${format}` : ""}
 Apply all ClarityPro rules. Return the output in the exact structure specified in the contract.`
 
     const completion = await openai.chat.completions.create({
-      model: process.env.OPENAI_MODEL || "gpt-4o-mini",
+      model: env.OPENAI_MODEL || "gpt-4o-mini",
       messages: [
         {
           role: "system",
@@ -164,10 +166,11 @@ Apply all ClarityPro rules. Return the output in the exact structure specified i
     }
 
     return NextResponse.json({ response: content })
-  } catch (error: any) {
-    console.error("ClarityPro editor error:", error)
+  } catch (error: unknown) {
+    logger.error("ClarityPro editor error:", error)
+    const errorMessage = error instanceof Error ? error.message : "Failed to edit text"
     return NextResponse.json(
-      { error: error.message || "Failed to edit text" },
+      { error: errorMessage },
       { status: 500 }
     )
   }

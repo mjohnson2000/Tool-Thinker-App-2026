@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
 import { OpenAI } from "openai"
+import { env } from "@/lib/env"
+import { logger } from "@/lib/logger"
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: env.OPENAI_API_KEY,
 })
 
 interface RoadmapStep {
@@ -79,7 +81,7 @@ Return a JSON object with this structure:
 Return ONLY valid JSON, no markdown formatting or code blocks.`
 
     const completion = await openai.chat.completions.create({
-      model: process.env.OPENAI_MODEL || "gpt-4o-mini",
+      model: env.OPENAI_MODEL || "gpt-4o-mini",
       messages: [
         {
           role: "system",
@@ -106,7 +108,7 @@ Return ONLY valid JSON, no markdown formatting or code blocks.`
       // Try to repair the JSON
       try {
         const repairCompletion = await openai.chat.completions.create({
-          model: process.env.OPENAI_MODEL || "gpt-4o-mini",
+          model: env.OPENAI_MODEL || "gpt-4o-mini",
           messages: [
             {
               role: "user",
@@ -119,7 +121,7 @@ Return ONLY valid JSON, no markdown formatting or code blocks.`
         const repairedJson = repaired.match(/```(?:json)?\s*([\s\S]*?)\s*```/) || [null, repaired]
         roadmap = JSON.parse((repairedJson[1] || repaired).trim())
       } catch (repairError) {
-        console.error("Failed to parse roadmap:", error, repairError)
+        logger.error("Failed to parse roadmap:", error, repairError)
         return NextResponse.json(
           { error: "Failed to generate roadmap. Please try again." },
           { status: 500 }
@@ -136,10 +138,11 @@ Return ONLY valid JSON, no markdown formatting or code blocks.`
     }
 
     return NextResponse.json(roadmap)
-  } catch (error: any) {
-    console.error("Framework Navigator error:", error)
+  } catch (error: unknown) {
+    logger.error("Framework Navigator error:", error)
+    const errorMessage = error instanceof Error ? error.message : "Failed to generate roadmap"
     return NextResponse.json(
-      { error: error.message || "Failed to generate roadmap" },
+      { error: errorMessage },
       { status: 500 }
     )
   }

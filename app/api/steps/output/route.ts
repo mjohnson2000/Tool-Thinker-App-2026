@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db/client"
+import { logger } from "@/lib/logger"
 
 export async function PUT(req: NextRequest) {
   try {
@@ -15,9 +16,11 @@ export async function PUT(req: NextRequest) {
 
     const updated = await db.updateStepOutput(outputId, userEditedOutput)
     return NextResponse.json(updated)
-  } catch (error: any) {
+  } catch (error: unknown) {
+    logger.error("Failed to update output:", error)
+    const errorMessage = error instanceof Error ? error.message : "Failed to update output"
     return NextResponse.json(
-      { error: error.message || "Failed to update output" },
+      { error: errorMessage },
       { status: 500 }
     )
   }

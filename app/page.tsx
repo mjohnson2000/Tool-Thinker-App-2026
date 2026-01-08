@@ -2,6 +2,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { NewUserHighlight } from "@/components/NewUserHighlight"
 import { PathSelectionCard } from "@/components/PathSelectionCard"
+import { JourneyMap } from "@/components/JourneyMap"
 import { 
   LayoutGrid, 
   Sparkles, 
@@ -95,6 +96,17 @@ export default function Home() {
               />
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Journey Map Section */}
+      <section className="py-16 bg-gradient-to-b from-white to-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <JourneyMap 
+            currentStage="discovery"
+            variant="full"
+            showActions={true}
+          />
         </div>
       </section>
 

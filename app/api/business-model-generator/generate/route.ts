@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
 import { OpenAI } from "openai"
+import { env } from "@/lib/env"
+import { logger } from "@/lib/logger"
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: env.OPENAI_API_KEY,
 })
 
 interface BusinessModelResponse {
@@ -79,7 +81,7 @@ Return a JSON object with this exact structure:
 Be realistic, specific, and actionable. Focus on creating a sustainable and scalable business model.`
 
     const completion = await openai.chat.completions.create({
-      model: process.env.OPENAI_MODEL || "gpt-4o-mini",
+      model: env.OPENAI_MODEL || "gpt-4o-mini",
       messages: [
         {
           role: "system",
@@ -106,7 +108,7 @@ Be realistic, specific, and actionable. Focus on creating a sustainable and scal
       // Try to repair the JSON
       try {
         const repairCompletion = await openai.chat.completions.create({
-          model: process.env.OPENAI_MODEL || "gpt-4o-mini",
+          model: env.OPENAI_MODEL || "gpt-4o-mini",
           messages: [
             {
               role: "user",
@@ -119,7 +121,7 @@ Be realistic, specific, and actionable. Focus on creating a sustainable and scal
         const repairedJson = repaired.match(/```(?:json)?\s*([\s\S]*?)\s*```/) || [null, repaired]
         businessModel = JSON.parse((repairedJson[1] || repaired).trim())
       } catch (repairError) {
-        console.error("Failed to parse business model:", error, repairError)
+        logger.error("Failed to parse business model:", error, repairError)
         return NextResponse.json(
           { error: "Failed to generate business model. Please try again." },
           { status: 500 }
@@ -136,10 +138,11 @@ Be realistic, specific, and actionable. Focus on creating a sustainable and scal
     }
 
     return NextResponse.json(businessModel)
-  } catch (error: any) {
-    console.error("Business Model Generator error:", error)
+  } catch (error: unknown) {
+    logger.error("Business Model Generator error:", error)
+    const errorMessage = error instanceof Error ? error.message : "Failed to generate business model"
     return NextResponse.json(
-      { error: error.message || "Failed to generate business model" },
+      { error: errorMessage },
       { status: 500 }
     )
   }

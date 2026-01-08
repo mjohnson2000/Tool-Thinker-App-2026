@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/AuthContext"
 import { useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabase/client"
 import { ProjectOnboarding } from "@/components/ProjectOnboarding"
+import { JourneyMap } from "@/components/JourneyMap"
 import { 
   Lightbulb, 
   FileText, 
@@ -162,6 +163,38 @@ export default function DashboardPage() {
     }
   }
 
+  async function handleDeleteProject(projectId: string) {
+    if (!user) return
+    
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.access_token) {
+        throw new Error("Not authenticated")
+      }
+
+      const headers: HeadersInit = {
+        "Authorization": `Bearer ${session.access_token}`,
+      }
+
+      const res = await fetch(`/api/projects/${projectId}`, {
+        method: "DELETE",
+        headers,
+      })
+      
+      const data = await res.json()
+      
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to delete project")
+      }
+      
+      // Reload dashboard data to reflect the deletion
+      await loadDashboardData()
+    } catch (error) {
+      console.error("Failed to delete project:", error)
+      alert(error instanceof Error ? error.message : "Failed to delete project")
+    }
+  }
+
   function formatDate(dateString: string) {
     const date = new Date(dateString)
     const now = new Date()
@@ -248,6 +281,28 @@ export default function DashboardPage() {
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">Dashboard</h1>
           <p className="text-gray-600">Welcome back! Here's what you've been working on.</p>
+        </div>
+
+        {/* Journey Map */}
+        <div className="mb-8">
+          <JourneyMap 
+            currentStage={
+              projects.length === 0 
+                ? "discovery" 
+                : projects.some((p: any) => p.status === "complete")
+                ? "documentation"
+                : "planning"
+            }
+            completedStages={
+              projects.length === 0 
+                ? [] 
+                : projects.some((p: any) => p.status === "complete")
+                ? ["discovery", "planning"]
+                : ["discovery"]
+            }
+            variant="compact"
+            showActions={true}
+          />
         </div>
 
         {/* Stats Cards */}

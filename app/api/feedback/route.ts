@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db/client"
+import { logger } from "@/lib/logger"
 
 export async function POST(req: NextRequest) {
   try {
@@ -21,9 +22,11 @@ export async function POST(req: NextRequest) {
     )
 
     return NextResponse.json(feedback)
-  } catch (error: any) {
+  } catch (error: unknown) {
+    logger.error("Failed to submit feedback:", error)
+    const errorMessage = error instanceof Error ? error.message : "Failed to submit feedback"
     return NextResponse.json(
-      { error: error.message || "Failed to submit feedback" },
+      { error: errorMessage },
       { status: 500 }
     )
   }

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { db, getOrCreateStep } from "@/lib/db/client"
+import { logger } from "@/lib/logger"
 
 export async function GET(req: NextRequest) {
   try {
@@ -24,9 +25,11 @@ export async function GET(req: NextRequest) {
       output: stepOutput?.user_edited_output || stepOutput?.ai_output || null,
       outputId: stepOutput?.id,
     })
-  } catch (error: any) {
+  } catch (error: unknown) {
+    logger.error("Failed to fetch step:", error)
+    const errorMessage = error instanceof Error ? error.message : "Failed to fetch step"
     return NextResponse.json(
-      { error: error.message || "Failed to fetch step" },
+      { error: errorMessage },
       { status: 500 }
     )
   }
@@ -60,9 +63,11 @@ export async function POST(req: NextRequest) {
       inputs: stepInputs?.data || {},
       output: stepOutput?.user_edited_output || stepOutput?.ai_output || null,
     })
-  } catch (error: any) {
+  } catch (error: unknown) {
+    logger.error("Failed to update step:", error)
+    const errorMessage = error instanceof Error ? error.message : "Failed to update step"
     return NextResponse.json(
-      { error: error.message || "Failed to update step" },
+      { error: errorMessage },
       { status: 500 }
     )
   }

@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { FRAMEWORK_ORDER, getFramework } from "@/lib/frameworks"
+import { JourneyMap } from "@/components/JourneyMap"
+import { TeamMembers } from "@/components/TeamMembers"
 import { 
   CheckCircle2, 
   Rocket, 
@@ -1051,14 +1053,14 @@ export default function ProjectOverviewPage() {
                   </div>
                 </Link>
 
-                {/* Share & Collaborate */}
+                {/* Share & Export */}
                 <div className="group bg-white rounded-lg border-2 border-gray-200 p-6">
                   <div className="flex items-start gap-4">
                     <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-gray-500 to-gray-600 flex items-center justify-center flex-shrink-0">
                       <Download className="w-6 h-6 text-white" />
                     </div>
                     <div className="flex-1">
-                      <h3 className="font-bold text-gray-900 mb-2">Share & Collaborate</h3>
+                      <h3 className="font-bold text-gray-900 mb-2">Export Plan</h3>
                       <p className="text-sm text-gray-600 mb-3">
                         Export your plan to share with team members or investors
                       </p>
@@ -1111,6 +1113,17 @@ export default function ProjectOverviewPage() {
                 </button>
               </div>
               <p className="text-gray-600 mb-2">Startup planning progress</p>
+              
+              {/* Journey Map */}
+              <div className="mb-6">
+                <JourneyMap 
+                  currentStage={isComplete ? "documentation" : "planning"}
+                  completedStages={isComplete ? ["discovery", "planning"] : ["discovery"]}
+                  projectId={projectId}
+                  variant="compact"
+                  showActions={true}
+                />
+              </div>
               
               {/* Prominent Get Started Section for New Projects */}
               {!isComplete && (
@@ -1363,6 +1376,14 @@ export default function ProjectOverviewPage() {
                 style={{ width: `${progress}%` }}
               />
             </div>
+          </div>
+
+          {/* Team Collaboration Section */}
+          <div className="bg-white rounded-lg border-2 border-gray-200 p-6 mb-6">
+            <TeamMembers 
+              projectId={projectId} 
+              isOwner={project && user ? String(project.user_id) === String(user.id) : false} 
+            />
           </div>
 
           {/* Recent Activity Feed */}

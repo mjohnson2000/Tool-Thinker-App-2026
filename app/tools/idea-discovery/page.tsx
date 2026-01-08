@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { DisclaimerBanner } from "@/components/DisclaimerBanner"
 import { ShareButton } from "@/components/ShareButton"
 import { DiscoveryOnboarding } from "@/components/DiscoveryOnboarding"
-import { Lightbulb, ArrowRight, ArrowLeft, CheckCircle2, Rocket } from "lucide-react"
+import { Lightbulb, ArrowRight, ArrowLeft, CheckCircle2, Rocket, History, Calendar, X, ChevronDown, ChevronUp } from "lucide-react"
 import { jsPDF } from "jspdf"
 import { useSaveToolOutput } from "@/hooks/useSaveToolOutput"
 import { useAuth } from "@/contexts/AuthContext"
@@ -150,11 +150,24 @@ export default function IdeaDiscoveryPage() {
   }>({})
   const [saved, setSaved] = useState(false)
   const [isCreatingProject, setIsCreatingProject] = useState(false)
+  const [pastDiscoveries, setPastDiscoveries] = useState<any[]>([])
+  const [loadingPastDiscoveries, setLoadingPastDiscoveries] = useState(false)
+  const [showPastDiscoveries, setShowPastDiscoveries] = useState(false)
+  const [creatingProjectFromPast, setCreatingProjectFromPast] = useState<string | null>(null)
+  const [viewingDiscoveryDetails, setViewingDiscoveryDetails] = useState<any | null>(null)
 
   const { saveOutput, saving } = useSaveToolOutput()
 
   const currentStepIndex = STEPS.indexOf(currentStep)
   const progress = ((currentStepIndex + 1) / STEPS.length) * 100
+
+  // Load past discoveries when on landing page and user is logged in
+  useEffect(() => {
+    if (currentStep === "landing" && user && !loadingPastDiscoveries) {
+      loadPastDiscoveries()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentStep, user])
 
   // Auto-save when reaching summary step
   useEffect(() => {
@@ -163,10 +176,10 @@ export default function IdeaDiscoveryPage() {
         toolId: "idea-discovery",
         toolName: "Idea Discovery",
         outputData: {
-          businessArea: data.selectedBusinessArea,
-          customer: data.selectedCustomer,
-          job: data.selectedJob,
-          solution: data.selectedSolution,
+          selectedBusinessArea: data.selectedBusinessArea,
+          selectedCustomer: data.selectedCustomer,
+          selectedJob: data.selectedJob,
+          selectedSolution: data.selectedSolution,
         },
         inputData: {
           entryPoint: data.entryPoint,
@@ -181,11 +194,103 @@ export default function IdeaDiscoveryPage() {
       }).then((result) => {
         if (result.success) {
           setSaved(true)
+          // Reload past discoveries to include the new one
+          if (currentStep === "landing") {
+            loadPastDiscoveries()
+          }
         }
       })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentStep, data.selectedSolution, saved])
+
+  async function loadPastDiscoveries() {
+    if (!user) return
+    
+    setLoadingPastDiscoveries(true)
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.access_token) return
+
+      const headers: HeadersInit = {
+        Authorization: `Bearer ${session.access_token}`,
+      }
+
+      const response = await fetch("/api/tool-outputs/list?toolId=idea-discovery", { headers })
+      const data = await response.json()
+
+      if (response.ok) {
+        setPastDiscoveries(data.outputs || [])
+      }
+    } catch (err) {
+      console.error("Failed to load past discoveries:", err)
+    } finally {
+      setLoadingPastDiscoveries(false)
+    }
+  }
+
+  async function createProjectFromPastDiscovery(output: any) {
+    if (!user) {
+      router.push("/signin")
+      return
+    }
+
+    setCreatingProjectFromPast(output.id)
+    setError(null)
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.access_token) {
+        throw new Error("Not authenticated")
+      }
+
+      const discoveryData = output.output_data
+      if (!discoveryData?.selectedBusinessArea || !discoveryData?.selectedCustomer || 
+          !discoveryData?.selectedJob || !discoveryData?.selectedSolution) {
+        throw new Error("Invalid discovery data")
+      }
+
+      const projectName = discoveryData.selectedBusinessArea?.title || "My Startup Idea"
+
+      const res = await fetch("/api/projects/from-discovery", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          projectName,
+          discoveryData: {
+            selectedBusinessArea: discoveryData.selectedBusinessArea,
+            selectedCustomer: discoveryData.selectedCustomer,
+            selectedJob: discoveryData.selectedJob,
+            selectedSolution: discoveryData.selectedSolution,
+          },
+        }),
+      })
+
+      const result = await res.json()
+
+      if (!res.ok) {
+        throw new Error(result.error || "Failed to create project")
+      }
+
+      // Navigate to the project overview
+      router.push(`/project/${result.project.id}/overview?fromDiscovery=true`)
+    } catch (err: any) {
+      setError(err.message || "Failed to create project. Please try again.")
+      setCreatingProjectFromPast(null)
+    }
+  }
+
+  function formatDate(dateString: string) {
+    const date = new Date(dateString)
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    })
+  }
 
   async function generateWithAI(prompt: string, type: "business-areas" | "customers" | "jobs" | "solutions"): Promise<any> {
     setLoading(true)
@@ -518,6 +623,97 @@ Return ONLY a JSON array with exactly 6 objects. Each object must have id, title
                   Go to Dashboard →
                 </Link>
               </div>
+
+              {/* Past Discoveries Section */}
+              {user && pastDiscoveries.length > 0 && (
+                <div className="mb-6 max-w-2xl mx-auto">
+                  <button
+                    onClick={() => setShowPastDiscoveries(!showPastDiscoveries)}
+                    className="w-full p-4 bg-gray-50 border-2 border-gray-200 rounded-xl hover:bg-gray-100 transition-all flex items-center justify-between"
+                  >
+                    <div className="flex items-center gap-3">
+                      <History className="w-5 h-5 text-gray-600" />
+                      <span className="font-semibold text-gray-900">
+                        View Past Discoveries ({pastDiscoveries.length})
+                      </span>
+                    </div>
+                    {showPastDiscoveries ? (
+                      <ChevronUp className="w-5 h-5 text-gray-600" />
+                    ) : (
+                      <ChevronDown className="w-5 h-5 text-gray-600" />
+                    )}
+                  </button>
+
+                  {showPastDiscoveries && (
+                    <div className="mt-4 space-y-3 max-h-96 overflow-y-auto">
+                      {pastDiscoveries.map((discovery) => {
+                        const discoveryData = discovery.output_data
+                        return (
+                          <div
+                            key={discovery.id}
+                            className="p-4 bg-white border-2 border-gray-200 rounded-lg hover:border-yellow-300 transition-all"
+                          >
+                            <div className="flex items-start justify-between gap-4">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <div className="text-2xl">
+                                    {discoveryData?.selectedBusinessArea?.icon || "💡"}
+                                  </div>
+                                  <div className="flex-1">
+                                    <h4 className="font-bold text-gray-900">
+                                      {discoveryData?.selectedBusinessArea?.title || "Untitled Idea"}
+                                    </h4>
+                                    <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
+                                      <Calendar className="w-3 h-3" />
+                                      {formatDate(discovery.created_at)}
+                                    </div>
+                                  </div>
+                                </div>
+                                {discoveryData?.selectedCustomer && (
+                                  <p className="text-sm text-gray-600 mt-2">
+                                    <strong>Customer:</strong> {discoveryData.selectedCustomer.title}
+                                  </p>
+                                )}
+                                {discoveryData?.selectedJob && (
+                                  <p className="text-sm text-gray-600">
+                                    <strong>Problem:</strong> {discoveryData.selectedJob.title}
+                                  </p>
+                                )}
+                              </div>
+                              <div className="flex flex-col gap-2">
+                                <Button
+                                  onClick={() => createProjectFromPastDiscovery(discovery)}
+                                  disabled={creatingProjectFromPast === discovery.id}
+                                  size="sm"
+                                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white whitespace-nowrap"
+                                >
+                                  {creatingProjectFromPast === discovery.id ? (
+                                    <>Creating...</>
+                                  ) : (
+                                    <>
+                                      <Rocket className="w-3 h-3 mr-1" />
+                                      Create Project
+                                    </>
+                                  )}
+                                </Button>
+                                <Button
+                                  onClick={() => setViewingDiscoveryDetails(discovery)}
+                                  variant="outline"
+                                  size="sm"
+                                  className="whitespace-nowrap"
+                                >
+                                  <History className="w-3 h-3 mr-1" />
+                                  View Details
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
 
               <button
                 onClick={() => handleEntryPoint("need-idea")}
@@ -1040,6 +1236,168 @@ Return ONLY a JSON array with exactly 6 objects. Each object must have id, title
 
         <DisclaimerBanner className="mt-8" />
       </div>
+
+      {/* Discovery Details Modal */}
+      {viewingDiscoveryDetails && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+            {/* Header */}
+            <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">Discovery Details</h2>
+                <p className="text-sm text-gray-500 mt-1">
+                  {formatDate(viewingDiscoveryDetails.created_at)}
+                </p>
+              </div>
+              <button
+                onClick={() => setViewingDiscoveryDetails(null)}
+                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                aria-label="Close"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Content - Scrollable */}
+            <div className="flex-1 overflow-y-auto px-6 py-6">
+              {(() => {
+                const data = viewingDiscoveryDetails.output_data
+                if (!data) return null
+
+                return (
+                  <div className="space-y-6">
+                    {/* Business Area */}
+                    {data.selectedBusinessArea && (
+                      <div className="bg-gradient-to-br from-gray-50 to-white rounded-xl p-6 border-2 border-gray-200">
+                        <div className="flex items-start gap-4">
+                          <div className="text-4xl">{data.selectedBusinessArea.icon}</div>
+                          <div className="flex-1">
+                            <h3 className="text-xl font-bold text-gray-900 mb-2">Business Idea</h3>
+                            <p className="text-lg font-semibold text-gray-800 mb-2">{data.selectedBusinessArea.title}</p>
+                            {data.selectedBusinessArea.description && (
+                              <p className="text-gray-600">{data.selectedBusinessArea.description}</p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Customer */}
+                    {data.selectedCustomer && (
+                      <div className="bg-gradient-to-br from-blue-50 to-white rounded-xl p-6 border-2 border-blue-200">
+                        <div className="flex items-start gap-4">
+                          <div className="text-4xl">{data.selectedCustomer.icon}</div>
+                          <div className="flex-1">
+                            <h3 className="text-xl font-bold text-gray-900 mb-2">Target Customer</h3>
+                            <p className="text-lg font-semibold text-gray-800 mb-2">{data.selectedCustomer.title}</p>
+                            {data.selectedCustomer.description && (
+                              <p className="text-gray-600 mb-3">{data.selectedCustomer.description}</p>
+                            )}
+                            {data.selectedCustomer.painPoints && data.selectedCustomer.painPoints.length > 0 && (
+                              <div>
+                                <p className="text-sm font-semibold text-gray-700 mb-1">Pain Points:</p>
+                                <ul className="text-sm text-gray-600 space-y-1">
+                                  {data.selectedCustomer.painPoints.map((point: string, idx: number) => (
+                                    <li key={idx}>• {point}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Job */}
+                    {data.selectedJob && (
+                      <div className="bg-gradient-to-br from-red-50 to-white rounded-xl p-6 border-2 border-red-200">
+                        <div className="flex items-start gap-4">
+                          <div className="text-4xl">{data.selectedJob.icon}</div>
+                          <div className="flex-1">
+                            <h3 className="text-xl font-bold text-gray-900 mb-2">Job-to-be-Done</h3>
+                            <p className="text-lg font-semibold text-gray-800 mb-2">{data.selectedJob.title}</p>
+                            {data.selectedJob.description && (
+                              <p className="text-gray-600 mb-3">{data.selectedJob.description}</p>
+                            )}
+                            {data.selectedJob.problemStatement && (
+                              <div className="bg-red-100 rounded-lg p-3">
+                                <p className="text-sm font-semibold text-red-800 mb-1">Problem Statement:</p>
+                                <p className="text-sm text-red-700">{data.selectedJob.problemStatement}</p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Solution */}
+                    {data.selectedSolution && (
+                      <div className="bg-gradient-to-br from-green-50 to-white rounded-xl p-6 border-2 border-green-200">
+                        <div className="flex items-start gap-4">
+                          <div className="text-4xl">{data.selectedSolution.icon}</div>
+                          <div className="flex-1">
+                            <h3 className="text-xl font-bold text-gray-900 mb-2">Solution</h3>
+                            <p className="text-lg font-semibold text-gray-800 mb-2">{data.selectedSolution.title}</p>
+                            {data.selectedSolution.description && (
+                              <p className="text-gray-600 mb-3">{data.selectedSolution.description}</p>
+                            )}
+                            {data.selectedSolution.keyFeatures && data.selectedSolution.keyFeatures.length > 0 && (
+                              <div>
+                                <p className="text-sm font-semibold text-gray-700 mb-2">Key Features:</p>
+                                <ul className="text-sm text-gray-600 space-y-1">
+                                  {data.selectedSolution.keyFeatures.map((feature: string, idx: number) => (
+                                    <li key={idx}>• {feature}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )
+              })()}
+            </div>
+
+            {/* Footer */}
+            <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between bg-gray-50">
+              <Link href="/history">
+                <Button variant="outline" size="sm">
+                  View All in History
+                </Button>
+              </Link>
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => {
+                    setViewingDiscoveryDetails(null)
+                    createProjectFromPastDiscovery(viewingDiscoveryDetails)
+                  }}
+                  disabled={creatingProjectFromPast === viewingDiscoveryDetails.id}
+                  size="sm"
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+                >
+                  {creatingProjectFromPast === viewingDiscoveryDetails.id ? (
+                    <>Creating...</>
+                  ) : (
+                    <>
+                      <Rocket className="w-4 h-4 mr-2" />
+                      Create Project
+                    </>
+                  )}
+                </Button>
+                <Button
+                  onClick={() => setViewingDiscoveryDetails(null)}
+                  variant="outline"
+                  size="sm"
+                >
+                  Close
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

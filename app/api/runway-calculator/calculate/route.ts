@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
 import { OpenAI } from "openai"
+import { env } from "@/lib/env"
+import { logger } from "@/lib/logger"
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: env.OPENAI_API_KEY,
 })
 
 export async function POST(req: NextRequest) {
@@ -22,8 +24,8 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY === "your_openai_key_here") {
-      console.error("OpenAI API key not configured")
+    if (!env.OPENAI_API_KEY || env.OPENAI_API_KEY === "your_openai_key_here") {
+      logger.error("OpenAI API key not configured")
       return NextResponse.json(
         { error: "OpenAI API key not configured. Please set OPENAI_API_KEY in .env" },
         { status: 500 }
@@ -119,7 +121,7 @@ Return a JSON object with this exact structure:
 Calculate accurate runway based on standard financial formulas. Consider revenue growth impact if provided.`
 
     const completion = await openai.chat.completions.create({
-      model: process.env.OPENAI_MODEL || "gpt-4o-mini",
+      model: env.OPENAI_MODEL || "gpt-4o-mini",
       messages: [
         {
           role: "system",
@@ -140,17 +142,18 @@ Calculate accurate runway based on standard financial formulas. Consider revenue
       const runway = JSON.parse(content)
       return NextResponse.json(runway)
     } catch (parseError) {
-      console.error("Failed to parse AI response:", parseError)
-      console.error("Raw AI response:", content)
+      logger.error("Failed to parse AI response:", parseError)
+      logger.error("Raw AI response:", content)
       return NextResponse.json(
         { error: "Failed to parse AI response. Please try again." },
         { status: 500 }
       )
     }
-  } catch (error: any) {
-    console.error("Runway Calculator error:", error)
+  } catch (error: unknown) {
+    logger.error("Runway Calculator error:", error)
+    const errorMessage = error instanceof Error ? error.message : "Failed to calculate runway"
     return NextResponse.json(
-      { error: error.message || "Failed to calculate runway" },
+      { error: errorMessage },
       { status: 500 }
     )
   }

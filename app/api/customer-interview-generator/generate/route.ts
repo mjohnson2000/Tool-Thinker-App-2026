@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
 import { OpenAI } from "openai"
+import { env } from "@/lib/env"
+import { logger } from "@/lib/logger"
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: env.OPENAI_API_KEY,
 })
 
 interface CustomerInterviewGuide {
@@ -64,8 +66,8 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY === "your_openai_key_here") {
-      console.error("OpenAI API key not configured")
+    if (!env.OPENAI_API_KEY || env.OPENAI_API_KEY === "your_openai_key_here") {
+      logger.error("OpenAI API key not configured")
       return NextResponse.json(
         { error: "OpenAI API key not configured. Please set OPENAI_API_KEY in .env" },
         { status: 500 }
@@ -171,7 +173,7 @@ Return a JSON object with this exact structure:
 Make it practical, actionable, and based on proven customer development methodologies.`
 
     const completion = await openai.chat.completions.create({
-      model: process.env.OPENAI_MODEL || "gpt-4o-mini",
+      model: env.OPENAI_MODEL || "gpt-4o-mini",
       messages: [
         {
           role: "system",
@@ -200,12 +202,12 @@ Make it practical, actionable, and based on proven customer development methodol
 
       return NextResponse.json(guide)
     } catch (parseError) {
-      console.error("Failed to parse interview guide:", parseError)
-      console.error("Raw AI response:", content)
+      logger.error("Failed to parse interview guide:", parseError)
+      logger.error("Raw AI response:", content)
       
       try {
         const repairCompletion = await openai.chat.completions.create({
-          model: process.env.OPENAI_MODEL || "gpt-4o-mini",
+          model: env.OPENAI_MODEL || "gpt-4o-mini",
           messages: [
             {
               role: "user",
@@ -219,17 +221,18 @@ Make it practical, actionable, and based on proven customer development methodol
         const guide: CustomerInterviewGuide = JSON.parse(repaired)
         return NextResponse.json(guide)
       } catch (repairError) {
-        console.error("Failed to repair JSON:", repairError)
+        logger.error("Failed to repair JSON:", repairError)
         return NextResponse.json(
           { error: "Failed to generate interview guide. Please try again." },
           { status: 500 }
         )
       }
     }
-  } catch (error: any) {
-    console.error("Customer Interview Generator error:", error)
+  } catch (error: unknown) {
+    logger.error("Customer Interview Generator error:", error)
+    const errorMessage = error instanceof Error ? error.message : "Failed to generate interview guide"
     return NextResponse.json(
-      { error: error.message || "Failed to generate interview guide" },
+      { error: errorMessage },
       { status: 500 }
     )
   }
