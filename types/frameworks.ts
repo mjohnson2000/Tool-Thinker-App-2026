@@ -8,6 +8,10 @@ export interface Question {
   placeholder?: string
   options?: string[]
   helpText?: string
+  example?: string
+  minLength?: number
+  maxLength?: number
+  validation?: (value: any) => string | null // Returns error message or null if valid
 }
 
 export interface CompletenessResult {
@@ -20,6 +24,7 @@ export interface Framework {
   key: string
   title: string
   description?: string
+  timeEstimate?: string // e.g., "15-20 minutes"
   questions: Question[]
   completeness: (inputs: Record<string, any>) => CompletenessResult
   outputSchema: Record<string, string | string[]>

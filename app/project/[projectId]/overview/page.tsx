@@ -28,11 +28,14 @@ import {
   Play,
   Pause,
   Archive,
+  Lock,
   ChevronDown,
   Link2,
   Activity,
   Clock,
-  Target
+  Target,
+  Share2,
+  Copy
 } from "lucide-react"
 import type { ProjectNote, ProjectTag } from "@/types/project"
 
@@ -56,6 +59,9 @@ export default function ProjectOverviewPage() {
   const [tags, setTags] = useState<ProjectTag[]>([])
   const [showNewNoteModal, setShowNewNoteModal] = useState(false)
   const [showTagInput, setShowTagInput] = useState(false)
+  const [showExportModal, setShowExportModal] = useState(false)
+  const [shareUrl, setShareUrl] = useState<string | null>(null)
+  const [isGeneratingShare, setIsGeneratingShare] = useState(false)
   const [newTag, setNewTag] = useState("")
   const [newNote, setNewNote] = useState({
     note_text: "",
@@ -275,22 +281,77 @@ export default function ProjectOverviewPage() {
     return steps.find((s) => s.status === "not_started") || steps[0]
   }
 
-  async function handleExport() {
+  async function handleExport(format: "markdown" | "word" = "markdown") {
     try {
-      const res = await fetch(`/api/export?projectId=${projectId}`)
+      const endpoint = format === "word" ? "/api/export/word" : "/api/export"
+      const res = await fetch(`${endpoint}?projectId=${projectId}`)
       const blob = await res.blob()
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement("a")
       a.href = url
-      a.download = `${project?.name || "startup"}-brief.md`
+      const extension = format === "word" ? "doc" : "md"
+      a.download = `${project?.name || "startup"}-brief.${extension}`
       document.body.appendChild(a)
       a.click()
       window.URL.revokeObjectURL(url)
       document.body.removeChild(a)
+      setShowExportModal(false)
     } catch (error) {
       console.error("Export failed:", error)
       alert("Failed to export. Please try again.")
     }
+  }
+
+  async function handleGenerateShareLink() {
+    if (!user) {
+      alert("Please sign in to generate a share link")
+      return
+    }
+
+    setIsGeneratingShare(true)
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.access_token) {
+        alert("Please sign in to generate a share link")
+        return
+      }
+
+      const res = await fetch(`/api/projects/${projectId}/share`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${session.access_token}`,
+          "Content-Type": "application/json",
+        },
+      })
+
+      if (!res.ok) {
+        throw new Error("Failed to generate share link")
+      }
+
+      const data = await res.json()
+      setShareUrl(data.shareUrl)
+    } catch (error) {
+      console.error("Failed to generate share link:", error)
+      alert("Failed to generate share link. Please try again.")
+    } finally {
+      setIsGeneratingShare(false)
+    }
+  }
+
+  function handleCopyShareLink() {
+    if (shareUrl) {
+      navigator.clipboard.writeText(shareUrl)
+      alert("Share link copied to clipboard!")
+    }
+  }
+
+  function handleExportToGoogleDocs() {
+    // Export as Word format which can be imported to Google Docs
+    handleExport("word")
+    // Show instructions
+    setTimeout(() => {
+      alert("File downloaded! To import to Google Docs:\n1. Go to Google Docs\n2. File > Open > Upload\n3. Select the downloaded .doc file")
+    }, 500)
   }
 
   async function handleDeleteProject() {
@@ -408,7 +469,10 @@ export default function ProjectOverviewPage() {
 
     try {
       const { data: { session } } = await supabase.auth.getSession()
-      if (!session?.access_token) return
+      if (!session?.access_token) {
+        alert("Please sign in to add notes")
+        return
+      }
 
       const res = await fetch(`/api/projects/${projectId}/notes`, {
         method: "POST",
@@ -419,14 +483,25 @@ export default function ProjectOverviewPage() {
         body: JSON.stringify(newNote),
       })
 
+      const data = await res.json()
+
       if (res.ok) {
-        const data = await res.json()
         setNotes([data.note, ...notes])
         setNewNote({ note_text: "", note_type: "general", is_pinned: false })
         setShowNewNoteModal(false)
+      } else {
+        // Show user-friendly error message
+        const errorMsg = data.error || "Failed to create note"
+        if (errorMsg.includes("table") || errorMsg.includes("project_notes")) {
+          alert("Notes feature is not set up yet. Please run the database migration: lib/supabase/schema-project-enhancements.sql in your Supabase SQL editor.")
+        } else {
+          alert(`Failed to create note: ${errorMsg}`)
+        }
+        console.error("Failed to create note:", data)
       }
     } catch (error) {
       console.error("Failed to create note:", error)
+      alert("Failed to create note. Please check your connection and try again.")
     }
   }
 
@@ -624,6 +699,139 @@ export default function ProjectOverviewPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Export Options Modal */}
+      {showExportModal && (
+        <div className="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-8">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">Export Your Plan</h2>
+              <button
+                onClick={() => {
+                  setShowExportModal(false)
+                  setShareUrl(null)
+                }}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="space-y-4 mb-6">
+              {/* Markdown Export */}
+              <button
+                onClick={() => handleExport("markdown")}
+                className="w-full flex items-center gap-4 p-4 border-2 border-gray-200 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-all text-left"
+              >
+                <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center">
+                  <FileText className="w-6 h-6 text-gray-600" />
+                </div>
+                <div className="flex-1">
+                  <div className="font-semibold text-gray-900">Markdown (.md)</div>
+                  <div className="text-sm text-gray-600">Plain text format, great for version control</div>
+                </div>
+                <Download className="w-5 h-5 text-gray-400" />
+              </button>
+
+              {/* Word Export */}
+              <button
+                onClick={() => handleExport("word")}
+                className="w-full flex items-center gap-4 p-4 border-2 border-gray-200 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-all text-left"
+              >
+                <div className="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center">
+                  <FileText className="w-6 h-6 text-blue-600" />
+                </div>
+                <div className="flex-1">
+                  <div className="font-semibold text-gray-900">Word Document (.doc)</div>
+                  <div className="text-sm text-gray-600">Formatted document, opens in Microsoft Word</div>
+                </div>
+                <Download className="w-5 h-5 text-gray-400" />
+              </button>
+
+              {/* Google Docs Export */}
+              <button
+                onClick={handleExportToGoogleDocs}
+                className="w-full flex items-center gap-4 p-4 border-2 border-gray-200 rounded-lg hover:border-green-400 hover:bg-green-50 transition-all text-left"
+              >
+                <div className="w-12 h-12 rounded-lg bg-green-100 flex items-center justify-center">
+                  <FileText className="w-6 h-6 text-green-600" />
+                </div>
+                <div className="flex-1">
+                  <div className="font-semibold text-gray-900">Google Docs</div>
+                  <div className="text-sm text-gray-600">Download Word file, then import to Google Docs</div>
+                </div>
+                <Download className="w-5 h-5 text-gray-400" />
+              </button>
+
+              {/* Share Link */}
+              <div className="w-full p-4 border-2 border-gray-200 rounded-lg">
+                <div className="flex items-center gap-4 mb-3">
+                  <div className="w-12 h-12 rounded-lg bg-purple-100 flex items-center justify-center">
+                    <Share2 className="w-6 h-6 text-purple-600" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-semibold text-gray-900">Share Link</div>
+                    <div className="text-sm text-gray-600">Create a shareable link to view your plan</div>
+                  </div>
+                </div>
+                
+                {!shareUrl ? (
+                  <Button
+                    onClick={handleGenerateShareLink}
+                    disabled={isGeneratingShare}
+                    variant="outline"
+                    className="w-full"
+                  >
+                    {isGeneratingShare ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-gray-600 border-t-transparent rounded-full animate-spin mr-2"></div>
+                        Generating...
+                      </>
+                    ) : (
+                      <>
+                        <Share2 className="w-4 h-4 mr-2" />
+                        Generate Share Link
+                      </>
+                    )}
+                  </Button>
+                ) : (
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 p-2 bg-gray-50 rounded border">
+                      <input
+                        type="text"
+                        value={shareUrl}
+                        readOnly
+                        className="flex-1 bg-transparent text-sm text-gray-700 outline-none"
+                      />
+                      <button
+                        onClick={handleCopyShareLink}
+                        className="p-2 hover:bg-gray-200 rounded transition"
+                        title="Copy link"
+                      >
+                        <Copy className="w-4 h-4 text-gray-600" />
+                      </button>
+                    </div>
+                    <p className="text-xs text-gray-500">
+                      Link expires in 30 days. Anyone with this link can view your plan (read-only).
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <Button
+              onClick={() => {
+                setShowExportModal(false)
+                setShareUrl(null)
+              }}
+              variant="outline"
+              className="w-full"
+            >
+              Close
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Completion Celebration Modal */}
       {showCompletionModal && isComplete && (
         <div className="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 p-4 overflow-y-auto">
@@ -1245,32 +1453,76 @@ export default function ProjectOverviewPage() {
           </div>
         )}
 
-        <div className="space-y-4 mb-8">
-          {steps.map((step, index) => (
-            <Link
-              key={step.stepKey}
-              href={`/project/${projectId}/step/${step.stepKey}`}
-              className="block bg-white rounded-lg border border-gray-200 p-6 hover:border-gray-300 hover:shadow-md transition"
-            >
-              <div className="flex justify-between items-start">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <span className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 text-gray-700 font-semibold text-sm">
-                      {index + 1}
-                    </span>
-                    <h3 className="font-semibold text-gray-900">{step.title}</h3>
-                  </div>
-                </div>
-                <span
-                  className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                    step.status
-                  )}`}
-                >
-                  {step.status.replace("_", " ")}
-                </span>
+        {/* Locked Step Warning */}
+        {searchParams.get("locked") === "true" && (
+          <div className="mb-6 bg-yellow-50 border-2 border-yellow-300 rounded-lg p-4">
+            <div className="flex items-start gap-3">
+              <Lock className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <h3 className="font-semibold text-yellow-900 mb-1">
+                  Step Locked
+                </h3>
+                <p className="text-sm text-yellow-800">
+                  You need to complete <strong>{decodeURIComponent(searchParams.get("requiredName") || "the previous step")}</strong> before accessing this step.
+                </p>
               </div>
-            </Link>
-          ))}
+            </div>
+          </div>
+        )}
+
+        <div className="space-y-4 mb-8">
+          {steps.map((step, index) => {
+            // Check if step is locked (previous step not completed)
+            const isLocked = index > 0 && steps[index - 1]?.status !== "completed"
+            const stepFramework = getFramework(step.stepKey)
+            
+            return (
+              <div
+                key={step.stepKey}
+                className={`block bg-white rounded-lg border p-6 transition ${
+                  isLocked
+                    ? "border-gray-200 opacity-60 cursor-not-allowed"
+                    : "border-gray-200 hover:border-gray-300 hover:shadow-md cursor-pointer"
+                }`}
+                onClick={() => {
+                  if (!isLocked) {
+                    router.push(`/project/${projectId}/step/${step.stepKey}`)
+                  }
+                }}
+              >
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      {isLocked ? (
+                        <Lock className="w-5 h-5 text-gray-400" />
+                      ) : (
+                        <span className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 text-gray-700 font-semibold text-sm">
+                          {index + 1}
+                        </span>
+                      )}
+                      <div className="flex-1">
+                        <h3 className={`font-semibold ${isLocked ? "text-gray-500" : "text-gray-900"}`}>
+                          {step.title}
+                        </h3>
+                        {isLocked && (
+                          <p className="text-xs text-gray-500 mt-1">
+                            Complete "{steps[index - 1]?.title}" first
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <span
+                    className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                      step.status
+                    )}`}
+                  >
+                    {step.status.replace("_", " ")}
+                  </span>
+                </div>
+              </div>
+            )
+          })}
         </div>
 
         {nextStep && !isComplete && (

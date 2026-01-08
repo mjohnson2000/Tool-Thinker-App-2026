@@ -4,6 +4,7 @@ export const ValueProp: Framework = {
   key: "value_prop",
   title: "Value Proposition",
   description: "Define what makes your solution uniquely valuable",
+  timeEstimate: "10-15 minutes",
   questions: [
     {
       id: "target_customer",

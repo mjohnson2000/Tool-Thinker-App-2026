@@ -4,6 +4,7 @@ export const BusinessModel: Framework = {
   key: "business_model",
   title: "Business Model",
   description: "Define how your business creates, delivers, and captures value",
+  timeEstimate: "15-20 minutes",
   questions: [
     {
       id: "revenue_streams",

@@ -62,9 +62,10 @@ export async function GET(req: NextRequest) {
         "Content-Disposition": `attachment; filename="${project.name}-startup-brief.md"`,
       },
     })
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : "Failed to export"
     return NextResponse.json(
-      { error: error.message || "Failed to export" },
+      { error: errorMessage },
       { status: 500 }
     )
   }

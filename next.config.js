@@ -10,11 +10,19 @@ const nextConfig = {
     ],
   },
   // Improve build stability
-  webpack: (config, { isServer }) => {
+  webpack: (config, { isServer, dev }) => {
     if (!isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,
         fs: false,
+      }
+    }
+    // Fix webpack chunk loading issues in development
+    if (dev) {
+      config.optimization = {
+        ...config.optimization,
+        moduleIds: 'named',
+        chunkIds: 'named',
       }
     }
     return config
