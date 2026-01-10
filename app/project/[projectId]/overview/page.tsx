@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { FRAMEWORK_ORDER, getFramework } from "@/lib/frameworks"
 import { JourneyMap } from "@/components/JourneyMap"
 import { TeamMembers } from "@/components/TeamMembers"
+import { ProjectCollaboration } from "@/components/ProjectCollaboration"
 import { ConfirmationModal, AlertModal } from "@/components/ui/modal"
 import { 
   CheckCircle2, 
@@ -91,7 +92,11 @@ export default function ProjectOverviewPage() {
 
   useEffect(() => {
     if (projectId && user) {
-      loadProject()
+      // Wait a bit for session to be fully established after sign in
+      const timer = setTimeout(() => {
+        loadProject()
+      }, 100)
+      return () => clearTimeout(timer)
     }
   }, [projectId, user])
 
@@ -108,24 +113,126 @@ export default function ProjectOverviewPage() {
     
     try {
       setLoading(true)
-      const { data: { session } } = await supabase.auth.getSession()
+      // Get session token for authentication - retry a few times if needed
+      let session = null
+      let retries = 3
+      
+      while (retries > 0 && !session?.access_token) {
+        const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession()
+        if (currentSession?.access_token) {
+          session = currentSession
+          break
+        }
+        // Wait a bit before retrying
+        await new Promise(resolve => setTimeout(resolve, 200))
+        retries--
+      }
+      
       if (!session?.access_token) {
         setLoading(false)
+        setAlertModal({
+          isOpen: true,
+          title: "Session Error",
+          message: "Unable to get your session. Please sign in again.",
+          type: "error",
+        })
+        setTimeout(() => {
+          router.push("/signin")
+        }, 2000)
         return
       }
 
-      const headers = {
+      let headers = {
         Authorization: `Bearer ${session.access_token}`,
       }
 
-      // Load project with tags and notes
-      const projectRes = await fetch(`/api/projects/${projectId}`, { headers })
+      // First verify the token is valid by checking with Supabase
+      const { data: { user: tokenUser }, error: tokenError } = await supabase.auth.getUser(session.access_token)
+      
+      if (tokenError || !tokenUser) {
+        // Token is invalid, try to refresh
+        if (session.refresh_token) {
+          const { data: { session: refreshedSession }, error: refreshError } = await supabase.auth.refreshSession({
+            refresh_token: session.refresh_token
+          })
+          
+          if (!refreshError && refreshedSession?.access_token) {
+            session = refreshedSession
+            headers = {
+              Authorization: `Bearer ${refreshedSession.access_token}`,
+            }
+          } else {
+            // Refresh failed, redirect to sign in
+            setLoading(false)
+            console.error("Token validation failed:", tokenError)
+            console.error("Refresh failed:", refreshError)
+            setAlertModal({
+              isOpen: true,
+              title: "Session Expired",
+              message: "Your session has expired. Please sign in again.",
+              type: "error",
+            })
+            setTimeout(() => {
+              router.push("/signin")
+            }, 2000)
+            return
+          }
+        } else {
+          // No refresh token, redirect to sign in
+          setLoading(false)
+          setAlertModal({
+            isOpen: true,
+            title: "Session Expired",
+            message: "Your session has expired. Please sign in again.",
+            type: "error",
+          })
+          setTimeout(() => {
+            router.push("/signin")
+          }, 2000)
+          return
+        }
+      }
+
+      // Try to load project with validated token
+      let projectRes = await fetch(`/api/projects/${projectId}`, { headers })
+      
+      // If we still get a 401, try refreshing one more time
+      if (projectRes.status === 401 && session.refresh_token) {
+        const { data: { session: refreshedSession }, error: refreshError } = await supabase.auth.refreshSession({
+          refresh_token: session.refresh_token
+        })
+        
+        if (!refreshError && refreshedSession?.access_token) {
+          // Retry with refreshed token
+          headers = {
+            Authorization: `Bearer ${refreshedSession.access_token}`,
+          }
+          projectRes = await fetch(`/api/projects/${projectId}`, { headers })
+        }
+      }
+
       let projectData: any = null
       if (projectRes.ok) {
         projectData = await projectRes.json()
         setProject(projectData)
         setTags(projectData.tags || [])
         setNotes(projectData.notes || [])
+      } else {
+        // Handle error case
+        const errorData = await projectRes.json().catch(() => ({}))
+        console.error("Failed to load project:", errorData)
+        setAlertModal({
+          isOpen: true,
+          title: "Error Loading Project",
+          message: errorData.error || "Failed to load project. Please try again.",
+          type: "error",
+        })
+        // Redirect to dashboard if project not found
+        if (projectRes.status === 404) {
+          setTimeout(() => {
+            router.push("/dashboard")
+          }, 2000)
+        }
       }
 
       // Load tags separately if not included in project response
@@ -269,10 +376,17 @@ export default function ProjectOverviewPage() {
       if (allCompleted && stepStatuses.length > 0) {
         setShowCompletionModal(true)
       }
-    } catch (error) {
-      console.error("Failed to load project:", error)
-    } finally {
+
       setLoading(false)
+    } catch (error: any) {
+      console.error("Failed to load project:", error)
+      setLoading(false)
+      setAlertModal({
+        isOpen: true,
+        title: "Error Loading Project",
+        message: error.message || "Failed to load project. Please try again.",
+        type: "error",
+      })
     }
   }
 

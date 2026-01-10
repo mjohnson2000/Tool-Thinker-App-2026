@@ -25,17 +25,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter()
 
   useEffect(() => {
+    // Helper to sync cookies with session
+    const syncCookies = (session: Session | null) => {
+      if (session) {
+        // Set cookies with proper expiration
+        const maxAgeAccess = 60 * 60 * 24 * 7 // 7 days
+        const maxAgeRefresh = 60 * 60 * 24 * 30 // 30 days
+        document.cookie = `sb-access-token=${session.access_token}; path=/; max-age=${maxAgeAccess}; SameSite=Lax`
+        document.cookie = `sb-refresh-token=${session.refresh_token}; path=/; max-age=${maxAgeRefresh}; SameSite=Lax`
+      } else {
+        // Clear cookies on sign out
+        document.cookie = 'sb-access-token=; path=/; max-age=0; SameSite=Lax'
+        document.cookie = 'sb-refresh-token=; path=/; max-age=0; SameSite=Lax'
+      }
+    }
+
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
       setUser(session?.user ?? null)
       setLoading(false)
-      
-      // Store tokens in cookies for server-side access
-      if (session) {
-        document.cookie = `sb-access-token=${session.access_token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`
-        document.cookie = `sb-refresh-token=${session.refresh_token}; path=/; max-age=${60 * 60 * 24 * 30}; SameSite=Lax`
-      }
+      syncCookies(session)
     })
 
     // Listen for auth changes
@@ -45,27 +55,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(session)
       setUser(session?.user ?? null)
       setLoading(false)
-      
-      // Update cookies when session changes
-      if (session) {
-        document.cookie = `sb-access-token=${session.access_token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`
-        document.cookie = `sb-refresh-token=${session.refresh_token}; path=/; max-age=${60 * 60 * 24 * 30}; SameSite=Lax`
-      } else {
-        // Clear cookies on sign out
-        document.cookie = 'sb-access-token=; path=/; max-age=0'
-        document.cookie = 'sb-refresh-token=; path=/; max-age=0'
-      }
+      syncCookies(session)
     })
 
     return () => subscription.unsubscribe()
   }, [])
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     })
-    if (!error) {
+    if (!error && data.session) {
+      // Ensure session is set and cookies are synced
+      setSession(data.session)
+      setUser(data.session.user)
+      // Sync cookies immediately
+      document.cookie = `sb-access-token=${data.session.access_token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`
+      document.cookie = `sb-refresh-token=${data.session.refresh_token}; path=/; max-age=${60 * 60 * 24 * 30}; SameSite=Lax`
+      // Small delay to ensure cookies are set before redirect
+      await new Promise(resolve => setTimeout(resolve, 100))
       router.push("/")
       router.refresh()
     }
@@ -73,14 +82,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const signUp = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         emailRedirectTo: `${window.location.origin}/auth/callback`,
       },
     })
-    if (!error) {
+    if (!error && data.session) {
+      // Ensure session is set and cookies are synced
+      setSession(data.session)
+      setUser(data.session.user)
+      // Sync cookies immediately
+      document.cookie = `sb-access-token=${data.session.access_token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`
+      document.cookie = `sb-refresh-token=${data.session.refresh_token}; path=/; max-age=${60 * 60 * 24 * 30}; SameSite=Lax`
+      // Small delay to ensure cookies are set before redirect
+      await new Promise(resolve => setTimeout(resolve, 100))
       router.push("/")
       router.refresh()
     }
@@ -111,7 +128,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const signOut = async () => {
+    // Clear cookies first
+    document.cookie = 'sb-access-token=; path=/; max-age=0'
+    document.cookie = 'sb-refresh-token=; path=/; max-age=0'
+    // Then sign out from Supabase
     await supabase.auth.signOut()
+    // Clear state
+    setSession(null)
+    setUser(null)
     router.push("/")
     router.refresh()
   }

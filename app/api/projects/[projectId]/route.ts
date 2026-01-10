@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from "next/server"
-import { db } from "@/lib/db/client"
-import { createClient } from "@/lib/supabase/server"
 import { logger } from "@/lib/logger"
 
 export async function GET(
@@ -9,15 +7,66 @@ export async function GET(
 ) {
   try {
     const authHeader = req.headers.get('authorization')
-    const supabase = createClient()
     
     if (authHeader && authHeader.startsWith('Bearer ')) {
       const token = authHeader.replace('Bearer ', '')
-      const { data: { user } } = await supabase.auth.getUser(token)
+      
+      // Create an authenticated Supabase client with the user's token
+      const { createClient: createSupabaseClient } = await import('@supabase/supabase-js')
+      const { env } = await import('@/lib/env')
+      
+      const supabase = createSupabaseClient(
+        env.NEXT_PUBLIC_SUPABASE_URL,
+        env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+        {
+          global: {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          },
+          auth: {
+            persistSession: false,
+            autoRefreshToken: false,
+          }
+        }
+      )
+      
+      // Validate token by getting user - pass token directly
+      const { data: { user }, error: authError } = await supabase.auth.getUser(token)
+      
+      if (authError || !user) {
+        // Check if it's a JWT expired error
+        const errorMessage = authError?.message || "Invalid token"
+        if (errorMessage.includes("JWT") || errorMessage.includes("expired") || errorMessage.includes("token")) {
+          return NextResponse.json(
+            { error: "JWT expired" },
+            { status: 401 }
+          )
+        }
+        return NextResponse.json(
+          { error: `Unauthorized - ${errorMessage}` },
+          { status: 401 }
+        )
+      }
       
       if (user) {
-        // Load project with tags and notes
-        const project = await db.getProjectById(params.projectId)
+        // Load project with tags and notes using authenticated client
+        const { data: project, error: projectError } = await supabase
+          .from('projects')
+          .select('*')
+          .eq('id', params.projectId)
+          .single()
+        
+        if (projectError) {
+          if (projectError.code === 'PGRST116') {
+            return NextResponse.json(
+              { error: "Project not found" },
+              { status: 404 }
+            )
+          }
+          throw new Error(`Failed to fetch project: ${projectError.message}`)
+        }
+
         if (!project) {
           return NextResponse.json(
             { error: "Project not found" },
@@ -25,14 +74,14 @@ export async function GET(
           )
         }
 
-        // Load tags
+        // Load tags using authenticated client
         const { data: tags } = await supabase
           .from('project_tags')
           .select('*')
           .eq('project_id', params.projectId)
           .order('created_at', { ascending: true })
 
-        // Load notes
+        // Load notes using authenticated client
         const { data: notes } = await supabase
           .from('project_notes')
           .select('*')
@@ -48,15 +97,11 @@ export async function GET(
       }
     }
 
-    // Fallback to basic project fetch
-    const project = await db.getProjectById(params.projectId)
-    if (!project) {
-      return NextResponse.json(
-        { error: "Project not found" },
-        { status: 404 }
-      )
-    }
-    return NextResponse.json(project)
+    // Fallback: return unauthorized if no token provided
+    return NextResponse.json(
+      { error: "Unauthorized - No token provided" },
+      { status: 401 }
+    )
   } catch (error: unknown) {
     logger.error("Project GET error:", error)
     const errorMessage = error instanceof Error ? error.message : "Failed to fetch project"
@@ -81,7 +126,28 @@ export async function PATCH(
     }
 
     const token = authHeader.replace('Bearer ', '')
-    const supabase = createClient()
+    
+    // Create an authenticated Supabase client with the user's token
+    const { createClient: createSupabaseClient } = await import('@supabase/supabase-js')
+    const { env } = await import('@/lib/env')
+    
+    const supabase = createSupabaseClient(
+      env.NEXT_PUBLIC_SUPABASE_URL,
+      env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      {
+        global: {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        },
+        auth: {
+          persistSession: false,
+          autoRefreshToken: false,
+        }
+      }
+    )
+    
+    // Validate token by getting user - pass token directly
     const { data: { user }, error: authError } = await supabase.auth.getUser(token)
 
     if (authError || !user) {
@@ -91,9 +157,14 @@ export async function PATCH(
       )
     }
 
-    // Verify project ownership
-    const project = await db.getProjectById(params.projectId)
-    if (!project || String(project.user_id) !== String(user.id)) {
+    // Verify project ownership using authenticated client
+    const { data: project, error: projectError } = await supabase
+      .from('projects')
+      .select('*')
+      .eq('id', params.projectId)
+      .single()
+    
+    if (projectError || !project || String(project.user_id) !== String(user.id)) {
       return NextResponse.json(
         { error: "Project not found or unauthorized" },
         { status: 404 }
@@ -118,7 +189,18 @@ export async function PATCH(
       updates.archived_at = null
     }
 
-    const updatedProject = await db.updateProject(params.projectId, updates)
+    // Update project using authenticated client
+    const { data: updatedProject, error: updateError } = await supabase
+      .from('projects')
+      .update(updates)
+      .eq('id', params.projectId)
+      .select()
+      .single()
+    
+    if (updateError || !updatedProject) {
+      throw new Error(`Failed to update project: ${updateError?.message || 'Unknown error'}`)
+    }
+    
     return NextResponse.json(updatedProject)
   } catch (error: unknown) {
     logger.error("Project PATCH error:", error)
@@ -144,7 +226,28 @@ export async function DELETE(
     }
 
     const token = authHeader.replace('Bearer ', '')
-    const supabase = createClient()
+    
+    // Create an authenticated Supabase client with the user's token
+    const { createClient: createSupabaseClient } = await import('@supabase/supabase-js')
+    const { env } = await import('@/lib/env')
+    
+    const supabase = createSupabaseClient(
+      env.NEXT_PUBLIC_SUPABASE_URL,
+      env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      {
+        global: {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        },
+        auth: {
+          persistSession: false,
+          autoRefreshToken: false,
+        }
+      }
+    )
+    
+    // Validate token by getting user - pass token directly
     const { data: { user }, error: authError } = await supabase.auth.getUser(token)
 
     if (authError || !user) {
@@ -154,18 +257,45 @@ export async function DELETE(
       )
     }
 
-    // Verify project ownership
-    const project = await db.getProjectById(params.projectId)
-    if (!project || String(project.user_id) !== String(user.id)) {
+    // Verify project ownership using authenticated client
+    const { data: project, error: projectError } = await supabase
+      .from('projects')
+      .select('*')
+      .eq('id', params.projectId)
+      .single()
+    
+    if (projectError || !project || String(project.user_id) !== String(user.id)) {
       return NextResponse.json(
         { error: "Project not found or unauthorized" },
         { status: 404 }
       )
     }
 
-    // Delete the project (cascade will handle related data)
-    await db.deleteProject(params.projectId)
-    await db.logEvent(user.id, "project_deleted", { projectId: params.projectId })
+    // Delete the project using authenticated client (cascade will handle related data)
+    const { error: deleteError } = await supabase
+      .from('projects')
+      .delete()
+      .eq('id', params.projectId)
+    
+    if (deleteError) {
+      throw new Error(`Failed to delete project: ${deleteError.message}`)
+    }
+
+    // Log event using authenticated client
+    try {
+      await supabase
+        .from('events')
+        .insert({
+          id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          user_id: user.id,
+          project_id: params.projectId,
+          event_type: "project_deleted",
+          payload: { projectId: params.projectId },
+        })
+    } catch (logError) {
+      // Log error but don't fail the delete
+      logger.error("Failed to log project deletion event:", logError)
+    }
 
     return NextResponse.json({ success: true })
   } catch (error: unknown) {

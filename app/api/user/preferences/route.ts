@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
 import { logger } from "@/lib/logger"
 
 export async function GET(req: NextRequest) {
@@ -15,9 +14,28 @@ export async function GET(req: NextRequest) {
     }
 
     const token = authHeader.replace('Bearer ', '')
-    const supabase = createClient()
     
-    // Verify token and get user
+    // Create an authenticated Supabase client with the user's token
+    const { createClient: createSupabaseClient } = await import('@supabase/supabase-js')
+    const { env } = await import('@/lib/env')
+    
+    const supabase = createSupabaseClient(
+      env.NEXT_PUBLIC_SUPABASE_URL,
+      env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      {
+        global: {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        },
+        auth: {
+          persistSession: false,
+          autoRefreshToken: false,
+        }
+      }
+    )
+    
+    // Validate token by getting user - pass token directly
     const { data: { user }, error: authError } = await supabase.auth.getUser(token)
 
     if (authError || !user) {
@@ -30,12 +48,13 @@ export async function GET(req: NextRequest) {
     // Get user preferences
     const { data, error } = await supabase
       .from("user_preferences")
-      .select("*")
+      .select("preferences")
       .eq("user_id", user.id)
-      .single()
+      .maybeSingle()
 
     if (error) {
-      if (error.code === "PGRST116") {
+      // If no preferences found (PGRST116) or any other error, return defaults
+      if (error.code === "PGRST116" || !data) {
         // No preferences found, return defaults
         return NextResponse.json({
           preferences: {
@@ -45,13 +64,16 @@ export async function GET(req: NextRequest) {
         })
       }
       logger.error("Failed to fetch user preferences:", error)
-      return NextResponse.json(
-        { error: `Failed to fetch preferences: ${error.message}` },
-        { status: 500 }
-      )
+      // Return defaults instead of error to prevent UI issues
+      return NextResponse.json({
+        preferences: {
+          emailNotifications: true,
+          autoSave: true,
+        },
+      })
     }
 
-    return NextResponse.json({ preferences: data.preferences || {} })
+    return NextResponse.json({ preferences: data?.preferences || {} })
   } catch (error: unknown) {
     logger.error("User preferences GET error:", error)
     const errorMessage = error instanceof Error ? error.message : "Failed to fetch user preferences"
@@ -75,9 +97,28 @@ export async function POST(req: NextRequest) {
     }
 
     const token = authHeader.replace('Bearer ', '')
-    const supabase = createClient()
     
-    // Verify token and get user
+    // Create an authenticated Supabase client with the user's token
+    const { createClient: createSupabaseClient } = await import('@supabase/supabase-js')
+    const { env } = await import('@/lib/env')
+    
+    const supabase = createSupabaseClient(
+      env.NEXT_PUBLIC_SUPABASE_URL,
+      env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      {
+        global: {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        },
+        auth: {
+          persistSession: false,
+          autoRefreshToken: false,
+        }
+      }
+    )
+    
+    // Validate token by getting user - pass token directly
     const { data: { user }, error: authError } = await supabase.auth.getUser(token)
 
     if (authError || !user) {

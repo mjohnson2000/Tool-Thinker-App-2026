@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db/client"
 import { logger } from "@/lib/logger"
-import { createClient } from "@/lib/supabase/server"
 
 export async function GET(req: NextRequest) {
   try {
@@ -16,9 +15,28 @@ export async function GET(req: NextRequest) {
     }
 
     const token = authHeader.replace('Bearer ', '')
-    const supabase = createClient()
     
-    // Verify token and get user
+    // Create an authenticated Supabase client with the user's token
+    const { createClient: createSupabaseClient } = await import('@supabase/supabase-js')
+    const { env } = await import('@/lib/env')
+
+    const supabase = createSupabaseClient(
+      env.NEXT_PUBLIC_SUPABASE_URL,
+      env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      {
+        global: {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        },
+        auth: {
+          persistSession: false,
+          autoRefreshToken: false,
+        }
+      }
+    )
+    
+    // Verify token by getting user - pass token directly
     const { data: { user }, error: authError } = await supabase.auth.getUser(token)
 
     if (authError || !user) {

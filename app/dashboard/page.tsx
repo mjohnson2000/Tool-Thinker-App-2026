@@ -102,13 +102,60 @@ export default function DashboardPage() {
     }
   }, [user, authLoading, router, debouncedSearchQuery, statusFilter])
 
+  // Refresh data when page becomes visible again (e.g., navigating back from project page)
+  useEffect(() => {
+    if (!user) return
+
+    let lastRefreshTime = Date.now()
+    const REFRESH_COOLDOWN = 2000 // Don't refresh more than once every 2 seconds
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && user) {
+        const now = Date.now()
+        // Only refresh if it's been at least 2 seconds since last refresh
+        if (now - lastRefreshTime > REFRESH_COOLDOWN) {
+          lastRefreshTime = now
+          loadDashboardData()
+        }
+      }
+    }
+
+    const handleFocus = () => {
+      if (user) {
+        const now = Date.now()
+        // Only refresh if it's been at least 2 seconds since last refresh
+        if (now - lastRefreshTime > REFRESH_COOLDOWN) {
+          lastRefreshTime = now
+          loadDashboardData()
+        }
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    window.addEventListener('focus', handleFocus)
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      window.removeEventListener('focus', handleFocus)
+    }
+  }, [user])
+
   async function loadDashboardData() {
     if (!user) return
     
     setLoading(true)
     try {
       // Get session token for authentication
-      const { data: { session } } = await supabase.auth.getSession()
+      let { data: { session }, error: sessionError } = await supabase.auth.getSession()
+      
+      // If session is expired or missing, try to refresh
+      if (sessionError || !session?.access_token) {
+        const { data: { session: refreshedSession }, error: refreshError } = await supabase.auth.refreshSession()
+        if (!refreshError && refreshedSession?.access_token) {
+          session = refreshedSession
+        }
+      }
+      
       const headers: HeadersInit = {}
       
       if (session?.access_token) {

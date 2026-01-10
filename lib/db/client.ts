@@ -1,5 +1,5 @@
 // Database client setup using Supabase
-import { supabase } from '@/lib/supabase/client'
+import { createClient } from '@/lib/supabase/server'
 
 interface DbClient {
   // Projects
@@ -52,6 +52,7 @@ function generateId(): string {
 
 export const db: DbClient = {
   createProject: async (userId: string, name: string) => {
+    const supabase = createClient()
     const project = {
       id: generateId(),
       user_id: userId,
@@ -69,6 +70,7 @@ export const db: DbClient = {
   },
 
   getProjects: async (userId: string) => {
+    const supabase = createClient()
     const { data, error } = await supabase
       .from('projects')
       .select('*')
@@ -80,6 +82,7 @@ export const db: DbClient = {
   },
 
   getProjectById: async (projectId: string) => {
+    const supabase = createClient()
     const { data, error } = await supabase
       .from('projects')
       .select('*')
@@ -94,6 +97,7 @@ export const db: DbClient = {
   },
 
   updateProject: async (projectId: string, updates: Partial<any>) => {
+    const supabase = createClient()
     const { data, error } = await supabase
       .from('projects')
       .update({ ...updates, updated_at: new Date().toISOString() })
@@ -107,6 +111,7 @@ export const db: DbClient = {
   },
 
   deleteProject: async (projectId: string) => {
+    const supabase = createClient()
     // Delete related data first (cascade should handle this, but being explicit)
     // Note: Supabase RLS and foreign key constraints should handle cascading deletes
     const { error } = await supabase
@@ -118,6 +123,7 @@ export const db: DbClient = {
   },
 
   getStep: async (projectId: string, stepKey: string) => {
+    const supabase = createClient()
     const { data, error } = await supabase
       .from('steps')
       .select('*')
@@ -133,6 +139,7 @@ export const db: DbClient = {
   },
 
   createStep: async (projectId: string, stepKey: string) => {
+    const supabase = createClient()
     const step = {
       id: generateId(),
       project_id: projectId,
@@ -152,6 +159,7 @@ export const db: DbClient = {
   },
 
   updateStepStatus: async (stepId: string, status: string, completedAt?: string) => {
+    const supabase = createClient()
     // First get the step to check if it exists
     const { data: existingStep } = await supabase
       .from('steps')
@@ -182,6 +190,7 @@ export const db: DbClient = {
   },
 
   upsertStepInputs: async (stepId: string, data: Record<string, any>) => {
+    const supabase = createClient()
     // Check if step_inputs exists for this step
     const { data: existing } = await supabase
       .from('step_inputs')
@@ -219,6 +228,7 @@ export const db: DbClient = {
   },
 
   getStepInputs: async (stepId: string) => {
+    const supabase = createClient()
     const { data, error } = await supabase
       .from('step_inputs')
       .select('*')
@@ -233,6 +243,7 @@ export const db: DbClient = {
   },
 
   createStepOutput: async (stepId: string, aiOutput: Record<string, any>, version: number) => {
+    const supabase = createClient()
     const output = {
       id: generateId(),
       step_id: stepId,
@@ -251,6 +262,7 @@ export const db: DbClient = {
   },
 
   updateStepOutput: async (outputId: string, userEditedOutput: Record<string, any>) => {
+    const supabase = createClient()
     const { data, error } = await supabase
       .from('step_outputs')
       .update({ 
@@ -269,6 +281,7 @@ export const db: DbClient = {
   },
 
   getStepOutput: async (stepId: string) => {
+    const supabase = createClient()
     const { data, error } = await supabase
       .from('step_outputs')
       .select('*')
@@ -283,6 +296,7 @@ export const db: DbClient = {
   },
 
   addFeedback: async (stepId: string, ratingClarity: number, ratingUsefulness: number, notes?: string) => {
+    const supabase = createClient()
     const feedback = {
       id: generateId(),
       step_id: stepId,
@@ -302,6 +316,7 @@ export const db: DbClient = {
   },
 
   logEvent: async (userId: string, eventType: string, payload: Record<string, any>, projectId?: string) => {
+    const supabase = createClient()
     const event = {
       id: generateId(),
       user_id: userId,
@@ -321,6 +336,7 @@ export const db: DbClient = {
 
   // Collaboration functions
   getProjectMembers: async (projectId: string) => {
+    const supabase = createClient()
     const { data, error } = await supabase
       .from('project_members')
       .select('*')
@@ -350,6 +366,7 @@ export const db: DbClient = {
   },
 
   addProjectMember: async (projectId: string, userId: string, role: 'owner' | 'editor' | 'viewer', invitedBy: string) => {
+    const supabase = createClient()
     const member = {
       id: generateId(),
       project_id: projectId,
@@ -370,6 +387,7 @@ export const db: DbClient = {
   },
 
   updateMemberRole: async (memberId: string, role: 'owner' | 'editor' | 'viewer') => {
+    const supabase = createClient()
     const { data, error } = await supabase
       .from('project_members')
       .update({ role, updated_at: new Date().toISOString() })
@@ -382,6 +400,7 @@ export const db: DbClient = {
   },
 
   removeProjectMember: async (memberId: string) => {
+    const supabase = createClient()
     const { error } = await supabase
       .from('project_members')
       .delete()
@@ -391,6 +410,7 @@ export const db: DbClient = {
   },
 
   getProjectInvitations: async (projectId: string) => {
+    const supabase = createClient()
     const { data, error } = await supabase
       .from('project_invitations')
       .select('*')
@@ -405,6 +425,7 @@ export const db: DbClient = {
   },
 
   createInvitation: async (projectId: string, email: string, role: 'editor' | 'viewer', invitedBy: string, token: string, expiresAt: string) => {
+    const supabase = createClient()
     const invitation = {
       id: generateId(),
       project_id: projectId,
@@ -425,6 +446,7 @@ export const db: DbClient = {
   },
 
   acceptInvitation: async (token: string, userId: string) => {
+    const supabase = createClient()
     // Get invitation
     const { data: invitation, error: inviteError } = await supabase
       .from('project_invitations')
@@ -459,6 +481,7 @@ export const db: DbClient = {
   },
 
   getProjectActivity: async (projectId: string, limit: number = 50) => {
+    const supabase = createClient()
     const { data, error } = await supabase
       .from('project_activity')
       .select('*, user:auth.users(id, email)')
@@ -471,6 +494,7 @@ export const db: DbClient = {
   },
 
   logProjectActivity: async (projectId: string, userId: string, activityType: string, description: string, metadata: Record<string, any> = {}) => {
+    const supabase = createClient()
     const activity = {
       id: generateId(),
       project_id: projectId,
@@ -490,6 +514,7 @@ export const db: DbClient = {
   },
 
   getProjectComments: async (projectId: string, stepId?: string) => {
+    const supabase = createClient()
     let query = supabase
       .from('project_comments')
       .select('*, user:auth.users(id, email)')
@@ -509,6 +534,7 @@ export const db: DbClient = {
   },
 
   addComment: async (projectId: string, userId: string, commentText: string, stepId?: string, parentCommentId?: string) => {
+    const supabase = createClient()
     const comment = {
       id: generateId(),
       project_id: projectId,
@@ -528,6 +554,7 @@ export const db: DbClient = {
   },
 
   updateComment: async (commentId: string, commentText: string) => {
+    const supabase = createClient()
     const { data, error } = await supabase
       .from('project_comments')
       .update({ 
@@ -543,6 +570,7 @@ export const db: DbClient = {
   },
 
   deleteComment: async (commentId: string) => {
+    const supabase = createClient()
     const { error } = await supabase
       .from('project_comments')
       .delete()
@@ -552,6 +580,7 @@ export const db: DbClient = {
   },
 
   checkProjectAccess: async (projectId: string, userId: string) => {
+    const supabase = createClient()
     // Check if user is project owner
     const project = await db.getProjectById(projectId)
     if (project && String(project.user_id) === String(userId)) {

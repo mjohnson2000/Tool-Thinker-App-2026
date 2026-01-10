@@ -69,9 +69,16 @@ export function ProjectTemplatesModal({ isOpen, onClose }: ProjectTemplatesModal
 
     setIsCreating(true)
     try {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session?.access_token) {
-        throw new Error("Not authenticated")
+      // Get fresh session (this will auto-refresh if needed)
+      let { data: { session }, error: sessionError } = await supabase.auth.getSession()
+      
+      // If session is expired or missing, try to refresh
+      if (sessionError || !session?.access_token) {
+        const { data: { session: refreshedSession }, error: refreshError } = await supabase.auth.refreshSession()
+        if (refreshError || !refreshedSession?.access_token) {
+          throw new Error("Your session has expired. Please sign in again.")
+        }
+        session = refreshedSession
       }
 
       const name = projectName.trim() || templates.find(t => t.id === templateId)?.name || "New Project"
@@ -88,24 +95,108 @@ export function ProjectTemplatesModal({ isOpen, onClose }: ProjectTemplatesModal
         }),
       })
 
-      const data = await res.json()
+      let data
+      try {
+        data = await res.json()
+      } catch (parseError) {
+        console.error("Failed to parse response:", parseError)
+        throw new Error("Invalid response from server. Please try again.")
+      }
 
       if (!res.ok) {
+        // If JWT expired error, try refreshing and retrying once
+        if ((data?.error?.includes("JWT") || data?.error?.includes("expired") || res.status === 401) && session?.refresh_token) {
+          // Refresh session and retry
+          const { data: { session: refreshedSession }, error: refreshError } = await supabase.auth.refreshSession()
+          if (!refreshError && refreshedSession?.access_token) {
+            const retryRes = await fetch("/api/projects/templates", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${refreshedSession.access_token}`,
+              },
+              body: JSON.stringify({
+                templateId,
+                projectName: name,
+              }),
+            })
+            let retryData
+            try {
+              retryData = await retryRes.json()
+            } catch (parseError) {
+              console.error("Failed to parse retry response:", parseError)
+              throw new Error("Invalid response from server. Please try again.")
+            }
+            
+            if (!retryRes.ok) {
+              throw new Error(retryData?.error || "Failed to create project from template")
+            }
+            
+            if (!retryData?.project || !retryData.project.id) {
+              throw new Error("Project was created but no project data was returned")
+            }
+            // Success on retry - continue with success flow
+            if (!retryData.project || !retryData.project.id) {
+              throw new Error("Project was created but no project data was returned")
+            }
+            
+            // Show success message briefly, then navigate
+            setAlertModal({
+              isOpen: true,
+              title: "Project Created",
+              message: `"${retryData.project.name}" has been created successfully. Redirecting...`,
+              type: "success",
+            })
+            
+            console.log("Project created successfully on retry:", retryData.project.id)
+            
+            // Wait a moment for user to see success, then navigate
+            // Give database a moment to fully save the project
+            setTimeout(() => {
+              // Navigate first, then close modal after a brief delay
+              router.replace(`/project/${retryData.project.id}/overview`)
+              // Close modal after navigation is initiated
+              setTimeout(() => {
+                onClose()
+              }, 100)
+            }, 1200)
+            return
+          }
+        }
         throw new Error(data.error || "Failed to create project from template")
       }
 
       // Success - navigate to project
+      if (!data || !data.project || !data.project.id) {
+        console.error("Invalid project data received:", data)
+        throw new Error("Project was created but no project data was returned. Please refresh and try again.")
+      }
+
+      console.log("Project created successfully:", data.project.id, data.project)
+      
+      // Verify project has required fields
+      if (!data.project.name) {
+        console.warn("Project created but missing name field:", data.project)
+      }
+
+      // Show success message briefly, then navigate
       setAlertModal({
         isOpen: true,
         title: "Project Created",
-        message: `"${data.project.name}" has been created successfully from the template.`,
+        message: `"${data.project.name}" has been created successfully. Redirecting...`,
         type: "success",
       })
 
+      // Wait a moment for user to see success, then navigate
+      // Give database a moment to fully save the project
       setTimeout(() => {
-        router.push(`/project/${data.project.id}/overview`)
-        onClose()
-      }, 1500)
+        // Navigate first, then close modal after a brief delay
+        router.replace(`/project/${data.project.id}/overview`)
+        // Close modal after navigation is initiated
+        setTimeout(() => {
+          onClose()
+        }, 100)
+      }, 1200)
     } catch (error) {
       console.error("Failed to create project from template:", error)
       setAlertModal({
@@ -114,6 +205,7 @@ export function ProjectTemplatesModal({ isOpen, onClose }: ProjectTemplatesModal
         message: error instanceof Error ? error.message : "Failed to create project from template",
         type: "error",
       })
+      // Don't close the modal on error - let user try again
     } finally {
       setIsCreating(false)
     }
