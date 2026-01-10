@@ -14,6 +14,7 @@ import { jsPDF } from "jspdf"
 import { useSaveToolOutput } from "@/hooks/useSaveToolOutput"
 import { useAuth } from "@/contexts/AuthContext"
 import { supabase } from "@/lib/supabase/client"
+import { AuthPrompt } from "@/components/AuthPrompt"
 
 // Types
 interface IdeaType {
@@ -891,12 +892,21 @@ Return ONLY a JSON array with exactly 6 objects. Each object must have id, title
           {/* Summary Step */}
           {currentStep === "summary" && data.selectedSolution && (
             <>
-              {saving && (
+              {!user && (
+                <div className="mb-6">
+                  <AuthPrompt
+                    title="Sign in to save your discovery"
+                    message="Create an account to save this discovery to your history and create a project from it."
+                    redirectLabel="Sign In to Save"
+                  />
+                </div>
+              )}
+              {user && saving && (
                 <div className="mb-4 p-3 bg-blue-50 border-2 border-blue-200 rounded-xl text-center">
                   <p className="text-blue-800 text-sm font-medium">Saving your discovery...</p>
                 </div>
               )}
-              {saved && !saving && (
+              {user && saved && !saving && (
                 <div className="mb-4 p-3 bg-green-50 border-2 border-green-200 rounded-xl text-center">
                   <p className="text-green-800 text-sm font-medium">✓ Saved to your history</p>
                 </div>

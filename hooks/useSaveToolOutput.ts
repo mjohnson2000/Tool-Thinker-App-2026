@@ -19,8 +19,9 @@ export function useSaveToolOutput() {
 
   const saveOutput = async (options: SaveToolOutputOptions) => {
     if (!user) {
-      setError("You must be signed in to save outputs")
-      return { success: false, error: "Not authenticated" }
+      const errorMessage = "You must be signed in to save outputs. Please sign in to continue."
+      setError(errorMessage)
+      return { success: false, error: errorMessage }
     }
 
     setSaving(true)
@@ -44,7 +45,18 @@ export function useSaveToolOutput() {
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error || "Failed to save output")
+        // Provide user-friendly error messages
+        let errorMessage = "Failed to save output"
+        if (response.status === 401) {
+          errorMessage = "Your session has expired. Please sign in again."
+        } else if (response.status === 400) {
+          errorMessage = data.error || "Invalid data. Please check your inputs."
+        } else if (response.status === 500) {
+          errorMessage = "Server error. Please try again later."
+        } else {
+          errorMessage = data.error || "Failed to save output. Please try again."
+        }
+        throw new Error(errorMessage)
       }
 
       return { success: true, data: data.data }

@@ -12,6 +12,11 @@ import { FRAMEWORK_ORDER, getFramework } from "@/lib/frameworks"
 import { JourneyMap } from "@/components/JourneyMap"
 import { TeamMembers } from "@/components/TeamMembers"
 import { ProjectCollaboration } from "@/components/ProjectCollaboration"
+import { ProjectReminders } from "@/components/ProjectReminders"
+import { ProjectRecommendations } from "@/components/ProjectRecommendations"
+import { ProjectComments } from "@/components/ProjectComments"
+import { ProjectActivityFeed } from "@/components/ProjectActivityFeed"
+import { ProjectShareModal } from "@/components/ProjectShareModal"
 import { ConfirmationModal, AlertModal } from "@/components/ui/modal"
 import { 
   CheckCircle2, 
@@ -64,6 +69,7 @@ export default function ProjectOverviewPage() {
   const [showNewNoteModal, setShowNewNoteModal] = useState(false)
   const [showTagInput, setShowTagInput] = useState(false)
   const [showExportModal, setShowExportModal] = useState(false)
+  const [showShareModal, setShowShareModal] = useState(false)
   const [shareUrl, setShareUrl] = useState<string | null>(null)
   const [isGeneratingShare, setIsGeneratingShare] = useState(false)
   const [newTag, setNewTag] = useState("")
@@ -1308,6 +1314,15 @@ export default function ProjectOverviewPage() {
                 </Link>
 
                 {/* Share & Export */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowShareModal(true)}
+                  title="Share project"
+                >
+                  <Share2 className="w-4 h-4 mr-2" />
+                  Share
+                </Button>
                 <div className="group bg-white rounded-lg border-2 border-gray-200 p-6">
                   <div className="flex items-start gap-4">
                     <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-gray-500 to-gray-600 flex items-center justify-center flex-shrink-0">
@@ -1495,6 +1510,7 @@ export default function ProjectOverviewPage() {
             <div className="flex gap-2">
               <div className="flex gap-2">
                 <ProjectCollaboration projectId={projectId} projectName={project?.name || ""} />
+                <ProjectReminders projectId={projectId} />
                 <Button onClick={handleExport} variant="outline">
                   Export Brief
                 </Button>
@@ -1563,6 +1579,25 @@ export default function ProjectOverviewPage() {
               )}
             </div>
           </div>
+
+          {/* Smart Recommendations */}
+          {healthScore !== null && (
+            <div className="mb-6">
+              <ProjectRecommendations
+                projectId={projectId}
+                projectName={project?.name || ""}
+                healthScore={healthScore}
+                completionPercentage={progress}
+                lastActivity={project?.updated_at}
+                completedSteps={completedCount}
+                totalSteps={steps.length}
+                nextIncompleteStep={nextStep?.stepKey}
+                hasDescription={!!project?.description}
+                hasTags={(project?.tags?.length || 0) > 0}
+                hasNotes={notes.length > 0}
+              />
+            </div>
+          )}
 
           {/* Quick Stats Row 2 */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
@@ -1643,28 +1678,15 @@ export default function ProjectOverviewPage() {
             />
           </div>
 
-          {/* Recent Activity Feed */}
-          {activity.length > 0 && (
-            <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
-              <div className="flex items-center gap-2 mb-4">
-                <Activity className="w-5 h-5 text-gray-700" />
-                <h2 className="text-lg font-bold text-gray-900">Recent Activity</h2>
-              </div>
-              <div className="space-y-3">
-                {activity.slice(0, 5).map((item, idx) => (
-                  <div key={idx} className="flex items-start gap-3 text-sm">
-                    <div className="mt-0.5">
-                      {getActivityIcon(item.event_type)}
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-gray-900">{getActivityLabel(item.event_type, item.payload || {})}</p>
-                      <p className="text-xs text-gray-500">{formatActivityDate(item.created_at)}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+          {/* Comments Section */}
+          <div className="mb-6">
+            <ProjectComments projectId={projectId} />
+          </div>
+
+          {/* Activity Feed */}
+          <div className="mb-6">
+            <ProjectActivityFeed projectId={projectId} limit={10} />
+          </div>
 
           {/* Quick Actions Panel */}
           <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border-2 border-blue-200 p-6 mb-6">
@@ -1998,6 +2020,17 @@ export default function ProjectOverviewPage() {
           </div>
         </div>
       )}
+
+      {/* Share Modal */}
+      <ProjectShareModal
+        projectId={projectId}
+        projectName={project?.name || ""}
+        isOpen={showShareModal}
+        onClose={() => {
+          setShowShareModal(false)
+          setShareUrl(null)
+        }}
+      />
 
       {/* Delete Confirmation Modal */}
       <ConfirmationModal

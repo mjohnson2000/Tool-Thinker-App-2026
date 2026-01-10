@@ -18,6 +18,7 @@ import {
   ExternalLink,
   History,
   FolderOpen,
+  Folder,
   X,
   Search,
   Filter,
@@ -30,7 +31,9 @@ import {
   Copy,
   Activity,
   Target,
-  Sparkles
+  Sparkles,
+  Grid3x3,
+  List
 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { ConfirmationModal, AlertModal } from "@/components/ui/modal"
@@ -39,6 +42,10 @@ import { Tooltip } from "@/components/ui/tooltip"
 import { useDebounce } from "@/hooks/useDebounce"
 import { RetryButton } from "@/components/ui/retry-button"
 import { ProjectTemplatesModal } from "@/components/ProjectTemplatesModal"
+import { ProjectFolders } from "@/components/ProjectFolders"
+import { ProjectReminders } from "@/components/ProjectReminders"
+import { ProjectCard } from "@/components/ProjectCard"
+import { ProjectEmptyState } from "@/components/ProjectEmptyState"
 
 interface Project {
   id: string
@@ -91,6 +98,10 @@ export default function DashboardPage() {
   const [duplicatingProject, setDuplicatingProject] = useState<string | null>(null)
   const [projectHealthScores, setProjectHealthScores] = useState<Record<string, { score: number; status: string; nextStep?: string }>>({})
   const [showTemplatesModal, setShowTemplatesModal] = useState(false)
+  const [folders, setFolders] = useState<Array<{ id: string; name: string; color: string }>>([])
+  const [selectedFolderId, setSelectedFolderId] = useState<string>("all")
+  const [newProjectFolderId, setNewProjectFolderId] = useState<string>("")
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -99,8 +110,9 @@ export default function DashboardPage() {
     }
     if (user) {
       loadDashboardData()
+      loadFolders()
     }
-  }, [user, authLoading, router, debouncedSearchQuery, statusFilter])
+  }, [user, authLoading, router, debouncedSearchQuery, statusFilter, selectedFolderId])
 
   // Refresh data when page becomes visible again (e.g., navigating back from project page)
   useEffect(() => {
@@ -140,6 +152,31 @@ export default function DashboardPage() {
     }
   }, [user])
 
+  async function loadFolders() {
+    if (!user) return
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.access_token) return
+
+      const res = await fetch("/api/projects/folders", {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      })
+
+      if (res.ok) {
+        const data = await res.json()
+        setFolders(data.folders || [])
+      } else if (res.status !== 503) {
+        // Only log non-503 errors (503 means feature not available, which is fine)
+        console.error("Failed to load folders")
+      }
+    } catch (error) {
+      console.error("Failed to load folders:", error)
+    }
+  }
+
   async function loadDashboardData() {
     if (!user) return
     
@@ -166,20 +203,24 @@ export default function DashboardPage() {
       const projectParams = new URLSearchParams()
       if (debouncedSearchQuery) projectParams.set('search', debouncedSearchQuery)
       if (statusFilter && statusFilter !== 'all') projectParams.set('status', statusFilter)
+      if (selectedFolderId && selectedFolderId !== 'all') projectParams.set('folder_id', selectedFolderId)
 
-      // Load projects and outputs in parallel
-      const [projectsRes, outputsRes] = await Promise.all([
+      // Load projects, outputs, and folders in parallel
+      const [projectsRes, outputsRes, foldersRes] = await Promise.all([
         fetch(`/api/projects?${projectParams.toString()}`, { headers }),
         fetch("/api/tool-outputs/list?limit=5", { headers }),
+        fetch("/api/projects/folders", { headers }).catch(() => ({ ok: false, json: async () => ({ folders: [] }) })),
       ])
 
       const projectsData = projectsRes.ok ? await projectsRes.json() : []
       const outputsData = outputsRes.ok ? await outputsRes.json() : { outputs: [] }
+      const foldersData = foldersRes.ok ? await foldersRes.json() : { folders: [] }
 
       // Store all projects (filtering happens client-side with useMemo)
       const allProjects = Array.isArray(projectsData) ? projectsData : []
       setProjects(allProjects)
       setRecentOutputs(outputsData.outputs || [])
+      setFolders(foldersData.folders || [])
 
       // Load health scores for all projects
       const healthScores: Record<string, { score: number; status: string; nextStep?: string }> = {}
@@ -254,10 +295,11 @@ export default function DashboardPage() {
       })
     } catch (error) {
       console.error("Failed to duplicate project:", error)
+      const errorMessage = error instanceof Error ? error.message : "Failed to duplicate project"
       setAlertModal({
         isOpen: true,
         title: "Error",
-        message: error instanceof Error ? error.message : "Failed to duplicate project",
+        message: errorMessage,
         type: "error",
       })
     } finally {
@@ -297,7 +339,10 @@ export default function DashboardPage() {
       const res = await fetch("/api/projects", {
         method: "POST",
         headers,
-        body: JSON.stringify({ name: newProjectName }),
+        body: JSON.stringify({ 
+          name: newProjectName,
+          folder_id: newProjectFolderId || undefined
+        }),
       })
       
       const project = await res.json()
@@ -308,14 +353,17 @@ export default function DashboardPage() {
       
       // Add new project to list and reload
       await loadDashboardData()
+      await loadFolders() // Reload folders in case folder was just created
       setNewProjectName("")
+      setNewProjectFolderId("")
       setShowNewProjectModal(false)
       
       // Navigate to project overview
       router.push(`/project/${project.id}/overview`)
     } catch (error) {
       console.error("Failed to create project:", error)
-      setCreateError(error instanceof Error ? error.message : "Failed to create project")
+      const errorMessage = error instanceof Error ? error.message : "Failed to create project"
+      setCreateError(errorMessage)
     } finally {
       setIsCreating(false)
     }
@@ -360,11 +408,12 @@ export default function DashboardPage() {
       await loadDashboardData()
     } catch (error) {
       console.error("Failed to delete project:", error)
+      const errorMessage = error instanceof Error ? error.message : "Failed to delete project"
       setDeleteConfirmModal({ isOpen: false, projectId: null, projectName: "" })
       setAlertModal({
         isOpen: true,
         title: "Error",
-        message: error instanceof Error ? error.message : "Failed to delete project",
+        message: errorMessage,
         type: "error",
       })
     }
@@ -437,6 +486,17 @@ export default function DashboardPage() {
   const filteredProjects = useMemo(() => {
     let filtered = projects
     
+    // Filter by folder
+    if (selectedFolderId && selectedFolderId !== "all") {
+      if (selectedFolderId === "none") {
+        filtered = filtered.filter((project: any) => !project.folder_id && !project.folder)
+      } else {
+        filtered = filtered.filter((project: any) => 
+          project.folder_id === selectedFolderId || project.folder?.id === selectedFolderId
+        )
+      }
+    }
+    
     if (debouncedSearchQuery.trim()) {
       filtered = filtered.filter((project) =>
         project.name.toLowerCase().includes(debouncedSearchQuery.toLowerCase())
@@ -448,7 +508,7 @@ export default function DashboardPage() {
     }
     
     return filtered
-  }, [projects, debouncedSearchQuery, statusFilter])
+  }, [projects, debouncedSearchQuery, statusFilter, selectedFolderId])
 
   if (authLoading || loading) {
     return (
@@ -622,7 +682,7 @@ export default function DashboardPage() {
                   Structured planning workspaces for your startup ideas
                 </p>
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-wrap">
                 <Tooltip content="Start from a template">
                   <Button 
                     variant="outline" 
@@ -639,13 +699,18 @@ export default function DashboardPage() {
                     id="new-project-button"
                     variant="outline" 
                     size="sm"
-                    onClick={() => setShowNewProjectModal(true)}
+                    onClick={async () => {
+                      await loadFolders() // Reload folders before opening modal
+                      setShowNewProjectModal(true)
+                    }}
                     aria-label="Create new project"
                   >
                     <Plus className="w-4 h-4 mr-2" aria-hidden="true" />
                     New Project
                   </Button>
                 </Tooltip>
+                <ProjectFolders />
+                <ProjectReminders />
               </div>
             </div>
 
@@ -682,143 +747,103 @@ export default function DashboardPage() {
 
               {showFilters && (
                 <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Status
-                  </label>
-                  <select
-                    value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900"
-                  >
-                    <option value="all">All Statuses</option>
-                    <option value="draft">Draft</option>
-                    <option value="active">Active</option>
-                    <option value="paused">Paused</option>
-                    <option value="review">Review</option>
-                    <option value="complete">Complete</option>
-                    <option value="archived">Archived</option>
-                  </select>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-900 mb-2">
+                        Status
+                      </label>
+                      <select
+                        value={statusFilter}
+                        onChange={(e) => setStatusFilter(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900"
+                      >
+                        <option value="all">All Statuses</option>
+                        <option value="draft">Draft</option>
+                        <option value="active">Active</option>
+                        <option value="paused">Paused</option>
+                        <option value="review">Review</option>
+                        <option value="complete">Complete</option>
+                        <option value="archived">Archived</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-900 mb-2">
+                        Folder
+                      </label>
+                      <select
+                        value={selectedFolderId}
+                        onChange={(e) => setSelectedFolderId(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900"
+                      >
+                        <option value="all">All Folders</option>
+                        <option value="none">No Folder</option>
+                        {folders.map((folder) => (
+                          <option key={folder.id} value={folder.id}>
+                            {folder.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
 
             {projects.length === 0 ? (
-              <div className="text-center py-16 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl border-2 border-dashed border-gray-300">
-                <div className="max-w-md mx-auto">
-                  <div className="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center mx-auto mb-6">
-                    <FolderOpen className="w-10 h-10 text-gray-400" />
-                  </div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-3">Start Your First Project</h3>
-                  <p className="text-gray-600 mb-4 leading-relaxed">
-                    Create a project to get guided, step-by-step help building your startup plan using proven frameworks (JTBD, Value Prop, Business Model).
-                  </p>
-                  <p className="text-sm text-gray-500 mb-6">
-                    Projects help you structure your thinking and track progress from idea to launch.
-                  </p>
-                  <Button 
-                    onClick={() => setShowNewProjectModal(true)}
-                    className="bg-gradient-to-r from-gray-900 to-gray-800 hover:from-gray-800 hover:to-gray-700 text-white px-8 py-3 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all"
-                  >
-                    <Plus className="w-5 h-5 mr-2 inline" />
-                    Create Your First Project
-                  </Button>
-                </div>
-              </div>
+              <ProjectEmptyState
+                type="no-projects"
+                onCreateProject={async () => {
+                  await loadFolders()
+                  setShowNewProjectModal(true)
+                }}
+                onViewTemplates={() => setShowTemplatesModal(true)}
+              />
+            ) : filteredProjects.length === 0 ? (
+              <ProjectEmptyState
+                type="no-results"
+                searchQuery={searchQuery}
+                onClearFilters={() => {
+                  setSearchQuery("")
+                  setStatusFilter("all")
+                  setSelectedFolderId("all")
+                }}
+              />
             ) : (
-              <div className="space-y-4">
-                {filteredProjects.slice(0, 10).map((project: any) => (
-                  <div
-                    key={project.id}
-                    className="group p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition border border-gray-200"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <Link
-                        href={`/project/${project.id}/overview`}
-                        className="flex-1 min-w-0"
-                      >
-                        <div className="flex items-center gap-2 mb-2">
-                          <h3 className="font-semibold text-gray-900 truncate">
-                            {project.name}
-                          </h3>
-                          <span className={`px-2 py-0.5 rounded-full text-xs font-medium border flex items-center gap-1 ${getStatusColor(project.status)}`}>
-                            {getStatusIcon(project.status)}
-                            <span className="capitalize">{project.status}</span>
-                          </span>
-                          {projectHealthScores[project.id] && (
-                            <Tooltip content={`Health Score: ${projectHealthScores[project.id].score}% - ${getHealthLabel(projectHealthScores[project.id].score)}`}>
-                              <span className={`px-2 py-0.5 rounded-full text-xs font-medium border flex items-center gap-1 ${getHealthColor(projectHealthScores[project.id].score)}`}>
-                                <Activity className="w-3 h-3" />
-                                {projectHealthScores[project.id].score}%
-                              </span>
-                            </Tooltip>
-                          )}
-                        </div>
-                        {projectHealthScores[project.id]?.nextStep && (
-                          <div className="flex items-center gap-1 text-xs text-blue-600 mb-1">
-                            <Target className="w-3 h-3" />
-                            <span>Next: {projectHealthScores[project.id].nextStep}</span>
-                          </div>
-                        )}
-                        {project.tags && project.tags.length > 0 && (
-                          <div className="flex flex-wrap gap-1 mb-2">
-                            {project.tags.map((tag: any) => (
-                              <span
-                                key={tag.id}
-                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-blue-50 text-blue-700 border border-blue-200"
-                              >
-                                <Tag className="w-3 h-3" />
-                                {tag.tag}
-                              </span>
-                            ))}
-                          </div>
-                        )}
-                        <div className="flex items-center gap-3 text-xs text-gray-500">
-                          <span>Updated {formatDate(project.updated_at)}</span>
-                        </div>
-                      </Link>
-                      <div className="flex items-center gap-2 flex-shrink-0">
-                        <Tooltip content="Duplicate project">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              handleDuplicateProject(project.id, project.name)
-                            }}
-                            disabled={duplicatingProject === project.id}
-                            className="opacity-0 group-hover:opacity-100 transition-opacity p-1 text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded"
-                            title="Duplicate project"
-                            aria-label={`Duplicate project ${project.name}`}
-                          >
-                            {duplicatingProject === project.id ? (
-                              <Clock className="w-4 h-4 animate-spin" aria-hidden="true" />
-                            ) : (
-                              <Copy className="w-4 h-4" aria-hidden="true" />
-                            )}
-                          </button>
-                        </Tooltip>
-                        <Link href={`/project/${project.id}/overview`} aria-label={`View project ${project.name}`}>
-                          <ExternalLink className="w-4 h-4 text-gray-400 hover:text-gray-600" aria-hidden="true" />
-                        </Link>
-                        <Tooltip content="Delete project">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              setDeleteConfirmModal({
-                                isOpen: true,
-                                projectId: project.id,
-                                projectName: project.name,
-                              })
-                            }}
-                            className="opacity-0 group-hover:opacity-100 transition-opacity p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded"
-                            title="Delete project"
-                            aria-label={`Delete project ${project.name}`}
-                          >
-                            <Trash2 className="w-4 h-4" aria-hidden="true" />
-                          </button>
-                        </Tooltip>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+              <div className={viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" : "space-y-3"}>
+                {filteredProjects.slice(0, 10).map((project: any) => {
+                  // Calculate completion percentage from health score data
+                  // Health score API provides completion info, use that as proxy
+                  const healthData = projectHealthScores[project.id]
+                  const completionPercentage = healthData?.score || 0 // Use health score as completion proxy for now
+                  
+                  return (
+                    <ProjectCard
+                      key={project.id}
+                      project={project}
+                      healthScore={projectHealthScores[project.id]?.score}
+                      nextStep={projectHealthScores[project.id]?.nextStep}
+                      completionPercentage={completionPercentage}
+                      viewMode={viewMode}
+                      onEdit={(id) => {
+                        // TODO: Implement edit functionality
+                        console.log("Edit project", id)
+                      }}
+                      onDuplicate={(id) => handleDuplicateProject(id, project.name)}
+                      onArchive={(id) => {
+                        // TODO: Implement archive functionality
+                        console.log("Archive project", id)
+                      }}
+                      onDelete={(id) => {
+                        setDeleteConfirmModal({
+                          isOpen: true,
+                          projectId: id,
+                          projectName: project.name,
+                        })
+                      }}
+                      formatDate={formatDate}
+                    />
+                  )
+                })}
                 {projects.length > 5 && (
                   <Link href="/dashboard?tab=projects">
                     <Button variant="outline" className="w-full">
@@ -901,6 +926,7 @@ export default function DashboardPage() {
                 onClick={() => {
                   setShowNewProjectModal(false)
                   setNewProjectName("")
+                  setNewProjectFolderId("")
                   setCreateError(null)
                 }}
                 className="text-gray-400 hover:text-gray-600 transition"
@@ -944,6 +970,30 @@ export default function DashboardPage() {
                   Give your startup idea a name to get started
                 </p>
               </div>
+
+              {folders.length > 0 && (
+                <div>
+                  <label htmlFor="projectFolder" className="block text-sm font-semibold text-gray-900 mb-2">
+                    Folder (Optional)
+                  </label>
+                  <select
+                    id="projectFolder"
+                    value={newProjectFolderId}
+                    onChange={(e) => setNewProjectFolderId(e.target.value)}
+                    className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-gray-900"
+                  >
+                    <option value="">No Folder</option>
+                    {folders.map((folder) => (
+                      <option key={folder.id} value={folder.id}>
+                        {folder.name}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Organize your project by assigning it to a folder
+                  </p>
+                </div>
+              )}
 
               <div className="flex gap-3">
                 <Button

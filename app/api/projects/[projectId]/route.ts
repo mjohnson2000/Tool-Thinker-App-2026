@@ -182,6 +182,37 @@ export async function PATCH(
     if (body.description !== undefined) updates.description = body.description
     if (body.name !== undefined) updates.name = body.name
 
+    // Handle folder_id update with validation
+    if (body.folder_id !== undefined) {
+      if (body.folder_id === null || body.folder_id === '') {
+        // Allow removing folder assignment
+        updates.folder_id = null
+      } else {
+        // Validate folder exists and belongs to user
+        const { data: folder, error: folderError } = await supabase
+          .from('project_folders')
+          .select('id, user_id')
+          .eq('id', body.folder_id)
+          .single()
+        
+        if (folderError || !folder) {
+          return NextResponse.json(
+            { error: "Folder not found" },
+            { status: 404 }
+          )
+        }
+        
+        if (String(folder.user_id) !== String(user.id)) {
+          return NextResponse.json(
+            { error: "Unauthorized - Folder does not belong to you" },
+            { status: 403 }
+          )
+        }
+        
+        updates.folder_id = body.folder_id
+      }
+    }
+
     // Handle archive
     if (body.status === 'archived' && !project.archived_at) {
       updates.archived_at = new Date().toISOString()

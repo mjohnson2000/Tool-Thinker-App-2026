@@ -51,11 +51,12 @@ export async function GET(req: NextRequest) {
     const search = searchParams.get('search')
     const tag = searchParams.get('tag')
     const priority = searchParams.get('priority')
+    const folder_id = searchParams.get('folder_id')
 
     // Build query - don't join project_tags if table doesn't exist
     let query = supabase
       .from('projects')
-      .select('*')
+      .select('*, folder:project_folders(id, name, color)')
       .eq('user_id', user.id)
 
     // Apply filters
@@ -65,6 +66,14 @@ export async function GET(req: NextRequest) {
 
     if (priority) {
       query = query.eq('priority', priority)
+    }
+
+    if (folder_id) {
+      if (folder_id === 'none') {
+        query = query.is('folder_id', null)
+      } else {
+        query = query.eq('folder_id', folder_id)
+      }
     }
 
     if (search) {
@@ -128,7 +137,26 @@ export async function POST(req: NextRequest) {
     }
 
     const token = authHeader.replace('Bearer ', '')
-    const supabase = createClient()
+    
+    // Create an authenticated Supabase client with the user's token
+    const { createClient: createSupabaseClient } = await import('@supabase/supabase-js')
+    const { env } = await import('@/lib/env')
+    
+    const supabase = createSupabaseClient(
+      env.NEXT_PUBLIC_SUPABASE_URL,
+      env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      {
+        global: {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        },
+        auth: {
+          persistSession: false,
+          autoRefreshToken: false,
+        }
+      }
+    )
     
     // Verify token and get user
     const { data: { user }, error: authError } = await supabase.auth.getUser(token)
@@ -141,13 +169,36 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json()
-    const { name, description, status, priority } = body
+    const { name, description, status, priority, folder_id } = body
 
     if (!name) {
       return NextResponse.json(
         { error: "Project name is required" },
         { status: 400 }
       )
+    }
+
+    // Validate folder_id if provided
+    if (folder_id) {
+      const { data: folder, error: folderError } = await supabase
+        .from('project_folders')
+        .select('id, user_id')
+        .eq('id', folder_id)
+        .single()
+      
+      if (folderError || !folder) {
+        return NextResponse.json(
+          { error: "Folder not found" },
+          { status: 404 }
+        )
+      }
+      
+      if (String(folder.user_id) !== String(user.id)) {
+        return NextResponse.json(
+          { error: "Unauthorized - Folder does not belong to you" },
+          { status: 403 }
+        )
+      }
     }
 
     const project = await db.createProject(user.id, name)
@@ -157,6 +208,7 @@ export async function POST(req: NextRequest) {
     if (description) updates.description = description
     if (status) updates.status = status
     if (priority) updates.priority = priority
+    if (folder_id) updates.folder_id = folder_id
     
     if (Object.keys(updates).length > 0) {
       await db.updateProject(project.id, updates)

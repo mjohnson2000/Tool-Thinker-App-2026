@@ -54,9 +54,19 @@ export function KeyboardShortcuts() {
         }
       }
 
-      // ? for help
-      if (e.key === "?" && !e.metaKey && !e.ctrlKey && !e.altKey) {
+      // Cmd+? or Ctrl+? for help
+      if ((e.metaKey || e.ctrlKey) && e.key === "/") {
         // Only show help if not typing in an input
+        const activeElement = document.activeElement
+        const isInput = activeElement?.tagName === "INPUT" || activeElement?.tagName === "TEXTAREA"
+        if (!isInput) {
+          e.preventDefault()
+          setShowHelp(true)
+        }
+      }
+      
+      // ? for help (when not in input)
+      if (e.key === "?" && !e.metaKey && !e.ctrlKey && !e.altKey) {
         const activeElement = document.activeElement
         const isInput = activeElement?.tagName === "INPUT" || activeElement?.tagName === "TEXTAREA"
         if (!isInput) {

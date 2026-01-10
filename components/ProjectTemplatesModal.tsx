@@ -199,10 +199,11 @@ export function ProjectTemplatesModal({ isOpen, onClose }: ProjectTemplatesModal
       }, 1200)
     } catch (error) {
       console.error("Failed to create project from template:", error)
+      const errorMessage = error instanceof Error ? error.message : "Failed to create project from template"
       setAlertModal({
         isOpen: true,
         title: "Error",
-        message: error instanceof Error ? error.message : "Failed to create project from template",
+        message: errorMessage,
         type: "error",
       })
       // Don't close the modal on error - let user try again
