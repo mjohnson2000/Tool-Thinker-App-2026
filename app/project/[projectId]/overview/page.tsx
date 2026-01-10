@@ -291,25 +291,83 @@ export default function ProjectOverviewPage() {
     return steps.find((s) => s.status === "not_started") || steps[0]
   }
 
-  async function handleExport(format: "markdown" | "word" = "markdown") {
+  async function handleExport(format: "markdown" | "word" | "notion" | "google-docs" = "markdown") {
     try {
-      const endpoint = format === "word" ? "/api/export/word" : "/api/export"
-      const res = await fetch(`${endpoint}?projectId=${projectId}`)
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.access_token) {
+        throw new Error("Not authenticated")
+      }
+
+      let endpoint = "/api/export"
+      let extension = "md"
+      let contentType = "text/markdown"
+
+      if (format === "word") {
+        endpoint = "/api/export/word"
+        extension = "doc"
+        contentType = "application/msword"
+      } else if (format === "notion") {
+        endpoint = "/api/export/notion"
+        extension = "json"
+        contentType = "application/json"
+      } else if (format === "google-docs") {
+        endpoint = "/api/export/google-docs"
+        extension = "html"
+        contentType = "text/html"
+      }
+
+      const res = await fetch(endpoint, {
+        method: format === "notion" || format === "google-docs" ? "POST" : "GET",
+        headers: format === "notion" || format === "google-docs" ? {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${session.access_token}`,
+        } : {},
+        body: format === "notion" || format === "google-docs" ? JSON.stringify({ projectId }) : undefined,
+      })
+
+      if (format === "notion") {
+        // Notion returns JSON - show instructions
+        const data = await res.json()
+        setShowExportModal(false)
+        setAlertModal({
+          isOpen: true,
+          title: "Notion Export Ready",
+          message: "Your project has been formatted for Notion. Copy the JSON data and use the Notion API or import tool to add it to your workspace.",
+          type: "success",
+        })
+        // Download JSON file
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" })
+        const url = window.URL.createObjectURL(blob)
+        const a = document.createElement("a")
+        a.href = url
+        a.download = `${project?.name || "startup"}-notion.json`
+        document.body.appendChild(a)
+        a.click()
+        window.URL.revokeObjectURL(url)
+        document.body.removeChild(a)
+        return
+      }
+
       const blob = await res.blob()
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement("a")
       a.href = url
-      const extension = format === "word" ? "doc" : "md"
       a.download = `${project?.name || "startup"}-brief.${extension}`
       document.body.appendChild(a)
       a.click()
       window.URL.revokeObjectURL(url)
       document.body.removeChild(a)
       setShowExportModal(false)
+      
+      let message = "Your project has been exported successfully."
+      if (format === "google-docs") {
+        message = "Your project has been exported as HTML. Open it in Google Docs by going to File > Open > Upload and selecting the downloaded file."
+      }
+      
       setAlertModal({
         isOpen: true,
         title: "Export Successful",
-        message: "Your project has been exported successfully.",
+        message,
         type: "success",
       })
     } catch (error) {
@@ -393,19 +451,6 @@ export default function ProjectOverviewPage() {
     }
   }
 
-  function handleExportToGoogleDocs() {
-    // Export as Word format which can be imported to Google Docs
-    handleExport("word")
-    // Show instructions
-    setTimeout(() => {
-      setAlertModal({
-        isOpen: true,
-        title: "Export Instructions",
-        message: "File downloaded! To import to Google Docs:\n\n1. Go to Google Docs\n2. File > Open > Upload\n3. Select the downloaded .doc file",
-        type: "info",
-      })
-    }, 500)
-  }
 
   async function handleDeleteProject() {
     if (!user || !project) return
@@ -831,7 +876,7 @@ export default function ProjectOverviewPage() {
 
               {/* Google Docs Export */}
               <button
-                onClick={handleExportToGoogleDocs}
+                onClick={() => handleExport("google-docs")}
                 className="w-full flex items-center gap-4 p-4 border-2 border-gray-200 rounded-lg hover:border-green-400 hover:bg-green-50 transition-all text-left"
               >
                 <div className="w-12 h-12 rounded-lg bg-green-100 flex items-center justify-center">
@@ -839,7 +884,22 @@ export default function ProjectOverviewPage() {
                 </div>
                 <div className="flex-1">
                   <div className="font-semibold text-gray-900">Google Docs</div>
-                  <div className="text-sm text-gray-600">Download Word file, then import to Google Docs</div>
+                  <div className="text-sm text-gray-600">Export as HTML (import to Google Docs via File &gt; Open)</div>
+                </div>
+                <Download className="w-5 h-5 text-gray-400" />
+              </button>
+
+              {/* Notion Export */}
+              <button
+                onClick={() => handleExport("notion")}
+                className="w-full flex items-center gap-4 p-4 border-2 border-gray-200 rounded-lg hover:border-purple-400 hover:bg-purple-50 transition-all text-left"
+              >
+                <div className="w-12 h-12 rounded-lg bg-purple-100 flex items-center justify-center">
+                  <FileText className="w-6 h-6 text-purple-600" />
+                </div>
+                <div className="flex-1">
+                  <div className="font-semibold text-gray-900">Notion</div>
+                  <div className="text-sm text-gray-600">Export as JSON format for Notion API integration</div>
                 </div>
                 <Download className="w-5 h-5 text-gray-400" />
               </button>
@@ -1319,12 +1379,15 @@ export default function ProjectOverviewPage() {
               )}
             </div>
             <div className="flex gap-2">
-              <Button onClick={handleExport} variant="outline">
-                Export Brief
-              </Button>
-              <Link href="/dashboard">
-                <Button variant="outline">Back to Dashboard</Button>
-              </Link>
+              <div className="flex gap-2">
+                <ProjectCollaboration projectId={projectId} projectName={project?.name || ""} />
+                <Button onClick={handleExport} variant="outline">
+                  Export Brief
+                </Button>
+                <Link href="/dashboard">
+                  <Button variant="outline">Back to Dashboard</Button>
+                </Link>
+              </div>
             </div>
           </div>
 

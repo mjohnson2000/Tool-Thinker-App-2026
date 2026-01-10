@@ -26,7 +26,11 @@ import {
   Pause,
   Archive,
   Play,
-  Trash2
+  Trash2,
+  Copy,
+  Activity,
+  Target,
+  Sparkles
 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { ConfirmationModal, AlertModal } from "@/components/ui/modal"
@@ -34,6 +38,7 @@ import { Skeleton, SkeletonStatsCard, SkeletonProjectCard, SkeletonCard } from "
 import { Tooltip } from "@/components/ui/tooltip"
 import { useDebounce } from "@/hooks/useDebounce"
 import { RetryButton } from "@/components/ui/retry-button"
+import { ProjectTemplatesModal } from "@/components/ProjectTemplatesModal"
 
 interface Project {
   id: string
@@ -83,6 +88,9 @@ export default function DashboardPage() {
     message: "",
     type: "info",
   })
+  const [duplicatingProject, setDuplicatingProject] = useState<string | null>(null)
+  const [projectHealthScores, setProjectHealthScores] = useState<Record<string, { score: number; status: string; nextStep?: string }>>({})
+  const [showTemplatesModal, setShowTemplatesModal] = useState(false)
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -126,6 +134,27 @@ export default function DashboardPage() {
       setProjects(allProjects)
       setRecentOutputs(outputsData.outputs || [])
 
+      // Load health scores for all projects
+      const healthScores: Record<string, { score: number; status: string; nextStep?: string }> = {}
+      await Promise.all(
+        allProjects.map(async (project: any) => {
+          try {
+            const healthRes = await fetch(`/api/projects/${project.id}/health`, { headers })
+            if (healthRes.ok) {
+              const healthData = await healthRes.json()
+              healthScores[project.id] = {
+                score: healthData.healthScore || 0,
+                status: healthData.healthStatus || 'needs_attention',
+                nextStep: healthData.nextStepSuggestion,
+              }
+            }
+          } catch (error) {
+            // Ignore health score errors
+          }
+        })
+      )
+      setProjectHealthScores(healthScores)
+
       // Calculate stats
       setStats({
         totalProjects: allProjects.length,
@@ -138,6 +167,67 @@ export default function DashboardPage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  async function handleDuplicateProject(projectId: string, projectName: string) {
+    if (!user) return
+
+    setDuplicatingProject(projectId)
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.access_token) {
+        throw new Error("Not authenticated")
+      }
+
+      const headers: HeadersInit = {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${session.access_token}`,
+      }
+
+      const res = await fetch(`/api/projects/${projectId}/duplicate`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ name: `${projectName} (Copy)` }),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to duplicate project")
+      }
+
+      // Reload dashboard
+      await loadDashboardData()
+
+      setAlertModal({
+        isOpen: true,
+        title: "Project Duplicated",
+        message: `"${data.project.name}" has been created successfully.`,
+        type: "success",
+      })
+    } catch (error) {
+      console.error("Failed to duplicate project:", error)
+      setAlertModal({
+        isOpen: true,
+        title: "Error",
+        message: error instanceof Error ? error.message : "Failed to duplicate project",
+        type: "error",
+      })
+    } finally {
+      setDuplicatingProject(null)
+    }
+  }
+
+  function getHealthColor(score: number) {
+    if (score >= 80) return "text-green-600 bg-green-50 border-green-200"
+    if (score >= 50) return "text-yellow-600 bg-yellow-50 border-yellow-200"
+    return "text-red-600 bg-red-50 border-red-200"
+  }
+
+  function getHealthLabel(score: number) {
+    if (score >= 80) return "Excellent"
+    if (score >= 50) return "Good"
+    return "Needs Attention"
   }
 
   async function createProject() {
@@ -411,11 +501,18 @@ export default function DashboardPage() {
                 <History className="w-6 h-6" />
                 Recent Tool Outputs
               </h2>
-              <Link href="/history">
-                <Button variant="outline" size="sm">
-                  View All
-                </Button>
-              </Link>
+              <div className="flex gap-2">
+                <Link href="/analytics">
+                  <Button variant="outline" size="sm">
+                    Analytics
+                  </Button>
+                </Link>
+                <Link href="/history">
+                  <Button variant="outline" size="sm">
+                    View All
+                  </Button>
+                </Link>
+              </div>
             </div>
 
             {recentOutputs.length === 0 ? (
@@ -478,18 +575,31 @@ export default function DashboardPage() {
                   Structured planning workspaces for your startup ideas
                 </p>
               </div>
-              <Tooltip content="Create a new project to get started">
-                <Button 
-                  id="new-project-button"
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => setShowNewProjectModal(true)}
-                  aria-label="Create new project"
-                >
-                  <Plus className="w-4 h-4 mr-2" aria-hidden="true" />
-                  New Project
-                </Button>
-              </Tooltip>
+              <div className="flex gap-2">
+                <Tooltip content="Start from a template">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setShowTemplatesModal(true)}
+                    aria-label="Start from template"
+                  >
+                    <Sparkles className="w-4 h-4 mr-2" aria-hidden="true" />
+                    Templates
+                  </Button>
+                </Tooltip>
+                <Tooltip content="Create a new project to get started">
+                  <Button 
+                    id="new-project-button"
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setShowNewProjectModal(true)}
+                    aria-label="Create new project"
+                  >
+                    <Plus className="w-4 h-4 mr-2" aria-hidden="true" />
+                    New Project
+                  </Button>
+                </Tooltip>
+              </div>
             </div>
 
             {/* Search and Filters */}
@@ -587,7 +697,21 @@ export default function DashboardPage() {
                             {getStatusIcon(project.status)}
                             <span className="capitalize">{project.status}</span>
                           </span>
+                          {projectHealthScores[project.id] && (
+                            <Tooltip content={`Health Score: ${projectHealthScores[project.id].score}% - ${getHealthLabel(projectHealthScores[project.id].score)}`}>
+                              <span className={`px-2 py-0.5 rounded-full text-xs font-medium border flex items-center gap-1 ${getHealthColor(projectHealthScores[project.id].score)}`}>
+                                <Activity className="w-3 h-3" />
+                                {projectHealthScores[project.id].score}%
+                              </span>
+                            </Tooltip>
+                          )}
                         </div>
+                        {projectHealthScores[project.id]?.nextStep && (
+                          <div className="flex items-center gap-1 text-xs text-blue-600 mb-1">
+                            <Target className="w-3 h-3" />
+                            <span>Next: {projectHealthScores[project.id].nextStep}</span>
+                          </div>
+                        )}
                         {project.tags && project.tags.length > 0 && (
                           <div className="flex flex-wrap gap-1 mb-2">
                             {project.tags.map((tag: any) => (
@@ -606,24 +730,44 @@ export default function DashboardPage() {
                         </div>
                       </Link>
                       <div className="flex items-center gap-2 flex-shrink-0">
-                        <Link href={`/project/${project.id}/overview`}>
-                          <ExternalLink className="w-4 h-4 text-gray-400 hover:text-gray-600" />
+                        <Tooltip content="Duplicate project">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleDuplicateProject(project.id, project.name)
+                            }}
+                            disabled={duplicatingProject === project.id}
+                            className="opacity-0 group-hover:opacity-100 transition-opacity p-1 text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded"
+                            title="Duplicate project"
+                            aria-label={`Duplicate project ${project.name}`}
+                          >
+                            {duplicatingProject === project.id ? (
+                              <Clock className="w-4 h-4 animate-spin" aria-hidden="true" />
+                            ) : (
+                              <Copy className="w-4 h-4" aria-hidden="true" />
+                            )}
+                          </button>
+                        </Tooltip>
+                        <Link href={`/project/${project.id}/overview`} aria-label={`View project ${project.name}`}>
+                          <ExternalLink className="w-4 h-4 text-gray-400 hover:text-gray-600" aria-hidden="true" />
                         </Link>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            setDeleteConfirmModal({
-                              isOpen: true,
-                              projectId: project.id,
-                              projectName: project.name,
-                            })
-                          }}
-                          className="opacity-0 group-hover:opacity-100 transition-opacity p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded"
-                          title="Delete project"
-                          aria-label={`Delete project ${project.name}`}
-                        >
-                          <Trash2 className="w-4 h-4" aria-hidden="true" />
-                        </button>
+                        <Tooltip content="Delete project">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              setDeleteConfirmModal({
+                                isOpen: true,
+                                projectId: project.id,
+                                projectName: project.name,
+                              })
+                            }}
+                            className="opacity-0 group-hover:opacity-100 transition-opacity p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded"
+                            title="Delete project"
+                            aria-label={`Delete project ${project.name}`}
+                          >
+                            <Trash2 className="w-4 h-4" aria-hidden="true" />
+                          </button>
+                        </Tooltip>
                       </div>
                     </div>
                   </div>
@@ -693,6 +837,12 @@ export default function DashboardPage() {
           />
         </div>
       </div>
+
+      {/* Templates Modal */}
+      <ProjectTemplatesModal
+        isOpen={showTemplatesModal}
+        onClose={() => setShowTemplatesModal(false)}
+      />
 
       {/* New Project Modal */}
       {showNewProjectModal && (

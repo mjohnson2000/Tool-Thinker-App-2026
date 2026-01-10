@@ -28,7 +28,7 @@ export function DiscoveryOnboarding() {
       targetId: "idea-discovery-header",
       title: "Welcome to Idea Discovery! 💡",
       description:
-        "This tool guides you through a 9-step journey to discover your next business idea. We'll ask about your interests, goals, and situation, then AI will generate personalized opportunities.",
+        "This tool guides you through a focused journey to discover your next startup idea. We'll ask about your interests and passions, then AI will generate personalized startup opportunities.",
     },
     {
       targetId: "idea-discovery-progress",

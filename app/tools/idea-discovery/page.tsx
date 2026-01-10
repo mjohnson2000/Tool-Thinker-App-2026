@@ -55,19 +55,6 @@ interface Solution {
 }
 
 interface DiscoveryData {
-  entryPoint: "need-idea" | "have-idea" | null
-  ideaType: IdeaType | null
-  location: {
-    city?: string
-    region?: string
-    country?: string
-    operatingModel?: "local" | "remote" | "hybrid"
-  }
-  scheduleGoals: {
-    hoursPerWeek?: string
-    incomeTarget?: string
-    timeline?: string
-  }
   interests: string
   selectedBusinessArea: BusinessArea | null
   selectedCustomer: CustomerPersona | null
@@ -77,9 +64,6 @@ interface DiscoveryData {
 
 type Step = 
   | "landing"
-  | "idea-type"
-  | "location"
-  | "schedule-goals"
   | "idea-selection"
   | "customer-selection"
   | "job-selection"
@@ -88,9 +72,6 @@ type Step =
 
 const STEPS: Step[] = [
   "landing",
-  "idea-type",
-  "location",
-  "schedule-goals",
   "idea-selection",
   "customer-selection",
   "job-selection",
@@ -98,42 +79,19 @@ const STEPS: Step[] = [
   "summary"
 ]
 
-const IDEA_TYPES: IdeaType[] = [
-  {
-    id: "side-hustle",
-    name: "Side Hustle",
-    description: "Part-time business to supplement income",
-    icon: "💼"
-  },
-  {
-    id: "startup",
-    name: "Startup",
-    description: "Scalable business with growth potential",
-    icon: "🚀"
-  },
-  {
-    id: "small-business",
-    name: "Small Business",
-    description: "Local or regional business",
-    icon: "🏪"
-  },
-  {
-    id: "freelance",
-    name: "Freelance Service",
-    description: "Service-based independent work",
-    icon: "🎨"
-  }
-]
+// Auto-set to startup for all discoveries
+const STARTUP_IDEA_TYPE: IdeaType = {
+  id: "startup",
+  name: "Startup",
+  description: "Scalable business with growth potential",
+  icon: "🚀"
+}
 
 export default function IdeaDiscoveryPage() {
   const router = useRouter()
   const { user } = useAuth()
   const [currentStep, setCurrentStep] = useState<Step>("landing")
   const [data, setData] = useState<DiscoveryData>({
-    entryPoint: null,
-    ideaType: null,
-    location: {},
-    scheduleGoals: {},
     interests: "",
     selectedBusinessArea: null,
     selectedCustomer: null,
@@ -182,10 +140,7 @@ export default function IdeaDiscoveryPage() {
           selectedSolution: data.selectedSolution,
         },
         inputData: {
-          entryPoint: data.entryPoint,
-          ideaType: data.ideaType,
-          location: data.location,
-          scheduleGoals: data.scheduleGoals,
+          ideaType: STARTUP_IDEA_TYPE,
           interests: data.interests,
         },
         metadata: {
@@ -332,13 +287,7 @@ export default function IdeaDiscoveryPage() {
     }
   }
 
-  function handleEntryPoint(entryPoint: "need-idea" | "have-idea") {
-    setData(prev => ({ ...prev, entryPoint }))
-    nextStep()
-  }
-
-  function handleIdeaTypeSelect(ideaType: IdeaType) {
-    setData(prev => ({ ...prev, ideaType }))
+  function handleStartDiscovery() {
     nextStep()
   }
 
@@ -348,9 +297,9 @@ export default function IdeaDiscoveryPage() {
       return
     }
 
-    const prompt = `Generate 6 business areas for a ${data.ideaType?.name || "business"} based on these interests: "${data.interests}"
+    const prompt = `Generate 6 startup business areas based on these interests: "${data.interests}"
 
-Focus on business areas that align with the user's interests and can be done as a ${data.ideaType?.name || "business"}.
+Focus on scalable startup ideas that align with the user's interests and have growth potential.
 
 Return ONLY a JSON array with exactly 6 objects. Each object must have id, title, description, and icon (emoji).`
 
@@ -490,10 +439,6 @@ Return ONLY a JSON array with exactly 6 objects. Each object must have id, title
   function resetDiscovery() {
     setCurrentStep("landing")
     setData({
-      entryPoint: null,
-      ideaType: null,
-      location: {},
-      scheduleGoals: {},
       interests: "",
       selectedBusinessArea: null,
       selectedCustomer: null,
@@ -610,9 +555,9 @@ Return ONLY a JSON array with exactly 6 objects. Each object must have id, title
           {/* Landing Step */}
           {currentStep === "landing" && (
             <div className="text-center space-y-8">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">Ready to discover your next business idea?</h2>
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">Discover Your Next Startup Idea</h2>
               <p className="text-lg text-gray-600 mb-6 max-w-2xl mx-auto">
-                This tool helps you find business ideas from scratch based on your interests, goals, and situation.
+                This tool helps you discover scalable startup ideas based on your interests and passions.
               </p>
               
               <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-6 mb-6 max-w-2xl mx-auto">
@@ -716,151 +661,16 @@ Return ONLY a JSON array with exactly 6 objects. Each object must have id, title
               )}
 
               <button
-                onClick={() => handleEntryPoint("need-idea")}
+                onClick={handleStartDiscovery}
                 className="w-full max-w-md mx-auto p-8 bg-gradient-to-br from-yellow-50 to-orange-100 rounded-2xl hover:shadow-xl transition-all border-2 border-yellow-300 hover:border-yellow-500 text-left group"
               >
-                <div className="text-4xl mb-4 text-center">💡</div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-2 text-center">I need an idea</h3>
-                <p className="text-gray-600 text-center">Start from scratch and discover business ideas that match your interests and goals</p>
+                <div className="text-4xl mb-4 text-center">🚀</div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-2 text-center">Start Discovery</h3>
+                <p className="text-gray-600 text-center">Discover scalable startup ideas that match your interests and passions</p>
                 <div className="mt-4 flex items-center justify-center">
                   <ArrowRight className="w-5 h-5 text-gray-600 group-hover:translate-x-1 transition-transform" />
                 </div>
               </button>
-            </div>
-          )}
-
-          {/* Idea Type Step */}
-          {currentStep === "idea-type" && (
-            <div className="space-y-6">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">What type of business are you interested in?</h2>
-              <div className="grid md:grid-cols-2 gap-4">
-                {IDEA_TYPES.map((type) => (
-                  <button
-                    key={type.id}
-                    onClick={() => handleIdeaTypeSelect(type)}
-                    className={`p-6 rounded-xl border-2 transition-all text-left ${
-                      data.ideaType?.id === type.id
-                        ? "border-gray-900 bg-gray-50"
-                        : "border-gray-200 hover:border-gray-400 hover:shadow-lg"
-                    }`}
-                  >
-                    <div className="text-3xl mb-3">{type.icon}</div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">{type.name}</h3>
-                    <p className="text-gray-600 text-sm">{type.description}</p>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Location Step */}
-          {currentStep === "location" && (
-            <div className="space-y-6">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">Where will you operate? (Optional)</h2>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-2">City</label>
-                  <Input
-                    value={data.location.city || ""}
-                    onChange={(e) => setData(prev => ({ ...prev, location: { ...prev.location, city: e.target.value } }))}
-                    placeholder="e.g., San Francisco"
-                    className="border-2 border-gray-200 focus:border-gray-900"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-2">Region/State</label>
-                  <Input
-                    value={data.location.region || ""}
-                    onChange={(e) => setData(prev => ({ ...prev, location: { ...prev.location, region: e.target.value } }))}
-                    placeholder="e.g., California"
-                    className="border-2 border-gray-200 focus:border-gray-900"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-2">Country</label>
-                  <Input
-                    value={data.location.country || ""}
-                    onChange={(e) => setData(prev => ({ ...prev, location: { ...prev.location, country: e.target.value } }))}
-                    placeholder="e.g., United States"
-                    className="border-2 border-gray-200 focus:border-gray-900"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-2">Operating Model</label>
-                  <div className="grid grid-cols-3 gap-3">
-                    {(["local", "remote", "hybrid"] as const).map((model) => (
-                      <button
-                        key={model}
-                        onClick={() => setData(prev => ({ ...prev, location: { ...prev.location, operatingModel: model } }))}
-                        className={`p-4 rounded-xl border-2 transition-all ${
-                          data.location.operatingModel === model
-                            ? "border-gray-900 bg-gray-50"
-                            : "border-gray-200 hover:border-gray-400"
-                        }`}
-                      >
-                        <span className="font-semibold text-gray-900 capitalize">{model}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-              <div className="flex justify-between mt-8">
-                <Button onClick={prevStep} variant="outline">
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Back
-                </Button>
-                <Button onClick={nextStep}>
-                  Continue
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {/* Schedule & Goals Step */}
-          {currentStep === "schedule-goals" && (
-            <div className="space-y-6">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">What are your goals and availability? (Optional)</h2>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-2">Hours per week available</label>
-                  <Input
-                    type="number"
-                    value={data.scheduleGoals.hoursPerWeek || ""}
-                    onChange={(e) => setData(prev => ({ ...prev, scheduleGoals: { ...prev.scheduleGoals, hoursPerWeek: e.target.value } }))}
-                    placeholder="e.g., 10"
-                    className="border-2 border-gray-200 focus:border-gray-900"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-2">Income target (monthly)</label>
-                  <Input
-                    value={data.scheduleGoals.incomeTarget || ""}
-                    onChange={(e) => setData(prev => ({ ...prev, scheduleGoals: { ...prev.scheduleGoals, incomeTarget: e.target.value } }))}
-                    placeholder="e.g., $5,000"
-                    className="border-2 border-gray-200 focus:border-gray-900"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-2">Timeline</label>
-                  <Input
-                    value={data.scheduleGoals.timeline || ""}
-                    onChange={(e) => setData(prev => ({ ...prev, scheduleGoals: { ...prev.scheduleGoals, timeline: e.target.value } }))}
-                    placeholder="e.g., Launch in 3 months"
-                    className="border-2 border-gray-200 focus:border-gray-900"
-                  />
-                </div>
-              </div>
-              <div className="flex justify-between mt-8">
-                <Button onClick={prevStep} variant="outline">
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Back
-                </Button>
-                <Button onClick={nextStep}>
-                  Continue
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              </div>
             </div>
           )}
 
