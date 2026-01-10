@@ -4,10 +4,17 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { jsPDF } from "jspdf"
 import { templates, getAllCategories, type Template } from "@/lib/templates"
+import { AlertModal } from "@/components/ui/modal"
 
 export default function TemplatesPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>("All")
   const categories = ["All", ...getAllCategories()]
+  const [alertModal, setAlertModal] = useState<{ isOpen: boolean; title: string; message: string; type?: "success" | "error" | "warning" | "info" }>({
+    isOpen: false,
+    title: "",
+    message: "",
+    type: "info",
+  })
 
   const filteredTemplates =
     selectedCategory === "All"
@@ -17,9 +24,20 @@ export default function TemplatesPage() {
   function handleDownload(template: Template) {
     try {
       template.generatePDF(jsPDF)
+      setAlertModal({
+        isOpen: true,
+        title: "Download Started",
+        message: "Your template is being downloaded.",
+        type: "success",
+      })
     } catch (error: any) {
       console.error("Failed to generate template:", error)
-      alert(`Failed to download template: ${error.message || "Unknown error"}. Please check the console for details.`)
+      setAlertModal({
+        isOpen: true,
+        title: "Download Failed",
+        message: `Failed to download template: ${error.message || "Unknown error"}. Please check the console for details.`,
+        type: "error",
+      })
     }
   }
 
@@ -126,6 +144,15 @@ export default function TemplatesPage() {
           </div>
         </div>
       </div>
+
+      {/* Alert Modal */}
+      <AlertModal
+        isOpen={alertModal.isOpen}
+        onClose={() => setAlertModal({ isOpen: false, title: "", message: "", type: "info" })}
+        title={alertModal.title}
+        message={alertModal.message}
+        type={alertModal.type}
+      />
     </div>
   )
 }

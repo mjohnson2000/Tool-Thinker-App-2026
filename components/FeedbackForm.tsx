@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
+import { AlertModal } from "@/components/ui/modal"
 
 interface FeedbackFormProps {
   stepId: string
@@ -14,11 +15,22 @@ export function FeedbackForm({ stepId, onSubmitted }: FeedbackFormProps) {
   const [ratingUsefulness, setRatingUsefulness] = useState(0)
   const [notes, setNotes] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [alertModal, setAlertModal] = useState<{ isOpen: boolean; title: string; message: string; type?: "success" | "error" | "warning" | "info" }>({
+    isOpen: false,
+    title: "",
+    message: "",
+    type: "info",
+  })
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (ratingClarity === 0 || ratingUsefulness === 0) {
-      alert("Please provide ratings for both clarity and usefulness")
+      setAlertModal({
+        isOpen: true,
+        title: "Rating Required",
+        message: "Please provide ratings for both clarity and usefulness",
+        type: "warning",
+      })
       return
     }
 
@@ -39,10 +51,29 @@ export function FeedbackForm({ stepId, onSubmitted }: FeedbackFormProps) {
         setRatingClarity(0)
         setRatingUsefulness(0)
         setNotes("")
+        setAlertModal({
+          isOpen: true,
+          title: "Thank You!",
+          message: "Your feedback has been submitted successfully.",
+          type: "success",
+        })
         onSubmitted?.()
+      } else {
+        setAlertModal({
+          isOpen: true,
+          title: "Error",
+          message: "Failed to submit feedback. Please try again.",
+          type: "error",
+        })
       }
     } catch (error) {
       console.error("Failed to submit feedback:", error)
+      setAlertModal({
+        isOpen: true,
+        title: "Error",
+        message: "Failed to submit feedback. Please check your connection and try again.",
+        type: "error",
+      })
     } finally {
       setIsSubmitting(false)
     }
@@ -113,6 +144,15 @@ export function FeedbackForm({ stepId, onSubmitted }: FeedbackFormProps) {
           {isSubmitting ? "Submitting..." : "Submit Feedback"}
         </Button>
       </div>
+
+      {/* Alert Modal */}
+      <AlertModal
+        isOpen={alertModal.isOpen}
+        onClose={() => setAlertModal({ isOpen: false, title: "", message: "", type: "info" })}
+        title={alertModal.title}
+        message={alertModal.message}
+        type={alertModal.type}
+      />
     </form>
   )
 }

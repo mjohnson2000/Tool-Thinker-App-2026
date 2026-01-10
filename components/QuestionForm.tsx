@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback, memo } from "react"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { HelpCircle, CheckCircle2 } from "lucide-react"
@@ -13,7 +13,7 @@ interface QuestionFormProps {
   onSubmit?: (values: Record<string, any>) => void
 }
 
-export function QuestionForm({
+function QuestionFormComponent({
   questions,
   initialValues = {},
   onChange,
@@ -25,27 +25,29 @@ export function QuestionForm({
     setValues(initialValues)
   }, [initialValues])
 
-  const handleChange = (id: string, value: any) => {
-    const newValues = { ...values, [id]: value }
-    setValues(newValues)
-    onChange?.(newValues)
-  }
+  const handleChange = useCallback((id: string, value: any) => {
+    setValues((prevValues) => {
+      const newValues = { ...prevValues, [id]: value }
+      onChange?.(newValues)
+      return newValues
+    })
+  }, [onChange])
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault()
     onSubmit?.(values)
-  }
+  }, [onSubmit, values])
 
   const [expandedHelp, setExpandedHelp] = useState<Record<string, boolean>>({})
   const [showExamples, setShowExamples] = useState<Record<string, boolean>>({})
 
-  const toggleHelp = (questionId: string) => {
+  const toggleHelp = useCallback((questionId: string) => {
     setExpandedHelp(prev => ({ ...prev, [questionId]: !prev[questionId] }))
-  }
+  }, [])
 
-  const toggleExample = (questionId: string) => {
+  const toggleExample = useCallback((questionId: string) => {
     setShowExamples(prev => ({ ...prev, [questionId]: !prev[questionId] }))
-  }
+  }, [])
 
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
 
@@ -74,7 +76,7 @@ export function QuestionForm({
     return null
   }
 
-  const handleBlur = (questionId: string, question: Question) => {
+  const handleBlur = useCallback((questionId: string, question: Question) => {
     const value = values[questionId]
     const error = validateField(question, value)
     if (error) {
@@ -86,7 +88,7 @@ export function QuestionForm({
         return newErrors
       })
     }
-  }
+  }, [values])
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -236,6 +238,9 @@ export function QuestionForm({
     </form>
   )
 }
+
+// Memoize the component to prevent unnecessary re-renders
+export const QuestionForm = memo(QuestionFormComponent)
 
 
 

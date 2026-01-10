@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Rocket } from "lucide-react"
+import { AlertModal } from "@/components/ui/modal"
 
 interface Project {
   id: string
@@ -19,6 +20,12 @@ export default function StartupPlanGeneratorPage() {
   const [newProjectName, setNewProjectName] = useState("")
   const [isCreating, setIsCreating] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [alertModal, setAlertModal] = useState<{ isOpen: boolean; title: string; message: string; type?: "success" | "error" | "warning" | "info" }>({
+    isOpen: false,
+    title: "",
+    message: "",
+    type: "info",
+  })
 
   useEffect(() => {
     loadProjects()
@@ -78,7 +85,13 @@ export default function StartupPlanGeneratorPage() {
       // Check if response contains an error
       if (data.error) {
         console.error("API Error:", data.error)
-        alert(`Failed to create project: ${data.error}`)
+        setAlertModal({
+          isOpen: true,
+          title: "Error",
+          message: `Failed to create project: ${data.error}`,
+          type: "error",
+        })
+        setIsCreating(false)
         return
       }
       
@@ -93,7 +106,12 @@ export default function StartupPlanGeneratorPage() {
       window.location.href = `/project/${project.id}/overview`
     } catch (error: any) {
       console.error("Failed to create project:", error)
-      alert(`Failed to create project: ${error.message || "Unknown error"}`)
+      setAlertModal({
+        isOpen: true,
+        title: "Error",
+        message: `Failed to create project: ${error.message || "Unknown error"}`,
+        type: "error",
+      })
     } finally {
       setIsCreating(false)
     }
@@ -179,6 +197,15 @@ export default function StartupPlanGeneratorPage() {
           </div>
         )}
       </div>
+
+      {/* Alert Modal */}
+      <AlertModal
+        isOpen={alertModal.isOpen}
+        onClose={() => setAlertModal({ isOpen: false, title: "", message: "", type: "info" })}
+        title={alertModal.title}
+        message={alertModal.message}
+        type={alertModal.type}
+      />
     </div>
   )
 }

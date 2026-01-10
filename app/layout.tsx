@@ -7,6 +7,7 @@ import { ErrorBoundary } from "@/components/ErrorBoundary"
 import { AuthProvider } from "@/contexts/AuthContext"
 import { OnboardingWrapper } from "@/components/OnboardingWrapper"
 import { JourneySidebar } from "@/components/JourneySidebar"
+import { KeyboardShortcuts } from "@/components/KeyboardShortcuts"
 
 export const metadata: Metadata = {
   title: "Tool Thinker - Tools That Help Founders Make Progress",
@@ -33,6 +34,7 @@ export default function RootLayout({
               <main>{children}</main>
               <Footer />
               <Chatbot />
+              <KeyboardShortcuts />
             </OnboardingWrapper>
           </AuthProvider>
         </ErrorBoundary>

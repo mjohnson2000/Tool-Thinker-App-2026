@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { FRAMEWORK_ORDER, getFramework } from "@/lib/frameworks"
 import { JourneyMap } from "@/components/JourneyMap"
 import { TeamMembers } from "@/components/TeamMembers"
+import { ConfirmationModal, AlertModal } from "@/components/ui/modal"
 import { 
   CheckCircle2, 
   Rocket, 
@@ -80,6 +81,13 @@ export default function ProjectOverviewPage() {
   })
   const [activity, setActivity] = useState<any[]>([])
   const [healthScore, setHealthScore] = useState<number | null>(null)
+  const [deleteConfirmModal, setDeleteConfirmModal] = useState(false)
+  const [alertModal, setAlertModal] = useState<{ isOpen: boolean; title: string; message: string; type?: "success" | "error" | "warning" | "info" }>({
+    isOpen: false,
+    title: "",
+    message: "",
+    type: "info",
+  })
 
   useEffect(() => {
     if (projectId && user) {
@@ -298,15 +306,31 @@ export default function ProjectOverviewPage() {
       window.URL.revokeObjectURL(url)
       document.body.removeChild(a)
       setShowExportModal(false)
+      setAlertModal({
+        isOpen: true,
+        title: "Export Successful",
+        message: "Your project has been exported successfully.",
+        type: "success",
+      })
     } catch (error) {
       console.error("Export failed:", error)
-      alert("Failed to export. Please try again.")
+      setAlertModal({
+        isOpen: true,
+        title: "Export Failed",
+        message: "Failed to export. Please try again.",
+        type: "error",
+      })
     }
   }
 
   async function handleGenerateShareLink() {
     if (!user) {
-      alert("Please sign in to generate a share link")
+      setAlertModal({
+        isOpen: true,
+        title: "Sign In Required",
+        message: "Please sign in to generate a share link",
+        type: "warning",
+      })
       return
     }
 
@@ -314,7 +338,13 @@ export default function ProjectOverviewPage() {
     try {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session?.access_token) {
-        alert("Please sign in to generate a share link")
+        setAlertModal({
+          isOpen: true,
+          title: "Sign In Required",
+          message: "Please sign in to generate a share link",
+          type: "warning",
+        })
+        setIsGeneratingShare(false)
         return
       }
 
@@ -332,9 +362,20 @@ export default function ProjectOverviewPage() {
 
       const data = await res.json()
       setShareUrl(data.shareUrl)
+      setAlertModal({
+        isOpen: true,
+        title: "Share Link Generated",
+        message: "Your share link has been generated successfully.",
+        type: "success",
+      })
     } catch (error) {
       console.error("Failed to generate share link:", error)
-      alert("Failed to generate share link. Please try again.")
+      setAlertModal({
+        isOpen: true,
+        title: "Error",
+        message: "Failed to generate share link. Please try again.",
+        type: "error",
+      })
     } finally {
       setIsGeneratingShare(false)
     }
@@ -343,7 +384,12 @@ export default function ProjectOverviewPage() {
   function handleCopyShareLink() {
     if (shareUrl) {
       navigator.clipboard.writeText(shareUrl)
-      alert("Share link copied to clipboard!")
+      setAlertModal({
+        isOpen: true,
+        title: "Copied!",
+        message: "Share link copied to clipboard!",
+        type: "success",
+      })
     }
   }
 
@@ -352,16 +398,23 @@ export default function ProjectOverviewPage() {
     handleExport("word")
     // Show instructions
     setTimeout(() => {
-      alert("File downloaded! To import to Google Docs:\n1. Go to Google Docs\n2. File > Open > Upload\n3. Select the downloaded .doc file")
+      setAlertModal({
+        isOpen: true,
+        title: "Export Instructions",
+        message: "File downloaded! To import to Google Docs:\n\n1. Go to Google Docs\n2. File > Open > Upload\n3. Select the downloaded .doc file",
+        type: "info",
+      })
     }, 500)
   }
 
   async function handleDeleteProject() {
     if (!user || !project) return
     
-    if (!confirm(`Are you sure you want to delete "${project.name}"? This action cannot be undone and will delete all associated data.`)) {
-      return
-    }
+    setDeleteConfirmModal(true)
+  }
+
+  async function confirmDeleteProject() {
+    if (!user || !project) return
 
     try {
       const { data: { session } } = await supabase.auth.getSession()
@@ -384,11 +437,18 @@ export default function ProjectOverviewPage() {
         throw new Error(data.error || "Failed to delete project")
       }
       
+      setDeleteConfirmModal(false)
       // Redirect to dashboard
       router.push("/dashboard")
     } catch (error: any) {
       console.error("Failed to delete project:", error)
-      alert(error.message || "Failed to delete project")
+      setDeleteConfirmModal(false)
+      setAlertModal({
+        isOpen: true,
+        title: "Error",
+        message: error.message || "Failed to delete project",
+        type: "error",
+      })
     }
   }
 
@@ -472,7 +532,12 @@ export default function ProjectOverviewPage() {
     try {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session?.access_token) {
-        alert("Please sign in to add notes")
+        setAlertModal({
+          isOpen: true,
+          title: "Sign In Required",
+          message: "Please sign in to add notes",
+          type: "warning",
+        })
         return
       }
 
@@ -495,15 +560,30 @@ export default function ProjectOverviewPage() {
         // Show user-friendly error message
         const errorMsg = data.error || "Failed to create note"
         if (errorMsg.includes("table") || errorMsg.includes("project_notes")) {
-          alert("Notes feature is not set up yet. Please run the database migration: lib/supabase/schema-project-enhancements.sql in your Supabase SQL editor.")
+          setAlertModal({
+            isOpen: true,
+            title: "Setup Required",
+            message: "Notes feature is not set up yet. Please run the database migration: lib/supabase/schema-project-enhancements.sql in your Supabase SQL editor.",
+            type: "warning",
+          })
         } else {
-          alert(`Failed to create note: ${errorMsg}`)
+          setAlertModal({
+            isOpen: true,
+            title: "Error",
+            message: `Failed to create note: ${errorMsg}`,
+            type: "error",
+          })
         }
         console.error("Failed to create note:", data)
       }
     } catch (error) {
       console.error("Failed to create note:", error)
-      alert("Failed to create note. Please check your connection and try again.")
+      setAlertModal({
+        isOpen: true,
+        title: "Error",
+        message: "Failed to create note. Please check your connection and try again.",
+        type: "error",
+      })
     }
   }
 
@@ -1741,6 +1821,27 @@ export default function ProjectOverviewPage() {
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={deleteConfirmModal}
+        onClose={() => setDeleteConfirmModal(false)}
+        onConfirm={confirmDeleteProject}
+        title="Delete Project"
+        message={project ? `Are you sure you want to delete "${project.name}"? This action cannot be undone and will delete all associated data.` : "Are you sure you want to delete this project?"}
+        confirmText="Delete Project"
+        cancelText="Cancel"
+        variant="danger"
+      />
+
+      {/* Alert Modal */}
+      <AlertModal
+        isOpen={alertModal.isOpen}
+        onClose={() => setAlertModal({ isOpen: false, title: "", message: "", type: "info" })}
+        title={alertModal.title}
+        message={alertModal.message}
+        type={alertModal.type}
+      />
     </div>
   )
 }

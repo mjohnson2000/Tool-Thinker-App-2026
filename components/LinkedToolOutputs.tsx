@@ -8,6 +8,7 @@ import { X, ExternalLink, CheckCircle2, Zap, ChevronDown, ChevronUp } from "luci
 import Link from "next/link"
 import { ToolOutputPreview } from "@/components/ToolOutputPreview"
 import { useRouter } from "next/navigation"
+import { ConfirmationModal, AlertModal } from "@/components/ui/modal"
 
 interface LinkedToolOutput {
   id: string
@@ -45,6 +46,16 @@ export function LinkedToolOutputs({ projectId, stepId, onAutoFillComplete }: Lin
   const [loadingSuggestions, setLoadingSuggestions] = useState<Record<string, boolean>>({})
   const [expandedOutputs, setExpandedOutputs] = useState<Record<string, boolean>>({})
   const [filling, setFilling] = useState<string | null>(null)
+  const [unlinkConfirmModal, setUnlinkConfirmModal] = useState<{ isOpen: boolean; referenceId: string | null }>({
+    isOpen: false,
+    referenceId: null,
+  })
+  const [alertModal, setAlertModal] = useState<{ isOpen: boolean; title: string; message: string; type?: "success" | "error" | "warning" | "info" }>({
+    isOpen: false,
+    title: "",
+    message: "",
+    type: "info",
+  })
 
   useEffect(() => {
     if (user) {
@@ -131,7 +142,12 @@ export function LinkedToolOutputs({ projectId, stepId, onAutoFillComplete }: Lin
 
   async function handleAutoFill(outputId: string, toolOutputId: string) {
     if (!stepId) {
-      alert("Step ID is required for auto-fill")
+      setAlertModal({
+        isOpen: true,
+        title: "Error",
+        message: "Step ID is required for auto-fill",
+        type: "error",
+      })
       return
     }
 
@@ -139,7 +155,13 @@ export function LinkedToolOutputs({ projectId, stepId, onAutoFillComplete }: Lin
     try {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session?.access_token) {
-        alert("Not authenticated")
+        setAlertModal({
+          isOpen: true,
+          title: "Authentication Required",
+          message: "Please sign in to use auto-fill",
+          type: "warning",
+        })
+        setFilling(null)
         return
       }
 
@@ -163,9 +185,12 @@ export function LinkedToolOutputs({ projectId, stepId, onAutoFillComplete }: Lin
         throw new Error(data.error || "Failed to auto-fill")
       }
 
-      alert(
-        `Successfully filled ${data.filledFields.length} field(s): ${data.filledFields.join(", ")}`
-      )
+      setAlertModal({
+        isOpen: true,
+        title: "Auto-Fill Successful",
+        message: `Successfully filled ${data.filledFields.length} field(s): ${data.filledFields.join(", ")}`,
+        type: "success",
+      })
       
       // Refresh the page to show updated inputs
       router.refresh()
@@ -175,7 +200,12 @@ export function LinkedToolOutputs({ projectId, stepId, onAutoFillComplete }: Lin
         onAutoFillComplete()
       }
     } catch (err: any) {
-      alert(err.message || "Failed to auto-fill step fields")
+      setAlertModal({
+        isOpen: true,
+        title: "Auto-Fill Failed",
+        message: err.message || "Failed to auto-fill step fields",
+        type: "error",
+      })
     } finally {
       setFilling(null)
     }
@@ -189,17 +219,30 @@ export function LinkedToolOutputs({ projectId, stepId, onAutoFillComplete }: Lin
   }
 
   async function unlinkOutput(referenceId: string) {
-    if (!confirm("Remove this tool output from the project?")) return
+    setUnlinkConfirmModal({ isOpen: true, referenceId })
+  }
+
+  async function confirmUnlinkOutput() {
+    if (!unlinkConfirmModal.referenceId) return
 
     try {
       const { data: { session } } = await supabase.auth.getSession()
-      if (!session?.access_token) return
+      if (!session?.access_token) {
+        setUnlinkConfirmModal({ isOpen: false, referenceId: null })
+        setAlertModal({
+          isOpen: true,
+          title: "Authentication Required",
+          message: "Please sign in to unlink outputs",
+          type: "warning",
+        })
+        return
+      }
 
       const headers: HeadersInit = {
         Authorization: `Bearer ${session.access_token}`,
       }
 
-      const res = await fetch(`/api/projects/${projectId}/tool-outputs/${referenceId}`, {
+      const res = await fetch(`/api/projects/${projectId}/tool-outputs/${unlinkConfirmModal.referenceId}`, {
         method: "DELETE",
         headers,
       })
@@ -208,9 +251,22 @@ export function LinkedToolOutputs({ projectId, stepId, onAutoFillComplete }: Lin
         throw new Error("Failed to unlink output")
       }
 
-      setOutputs(outputs.filter((o) => o.id !== referenceId))
+      setOutputs(outputs.filter((o) => o.id !== unlinkConfirmModal.referenceId))
+      setUnlinkConfirmModal({ isOpen: false, referenceId: null })
+      setAlertModal({
+        isOpen: true,
+        title: "Unlinked",
+        message: "Tool output has been unlinked from the project.",
+        type: "success",
+      })
     } catch (err: any) {
-      alert(err.message || "Failed to unlink output")
+      setUnlinkConfirmModal({ isOpen: false, referenceId: null })
+      setAlertModal({
+        isOpen: true,
+        title: "Error",
+        message: err.message || "Failed to unlink output",
+        type: "error",
+      })
     }
   }
 
@@ -381,6 +437,27 @@ export function LinkedToolOutputs({ projectId, stepId, onAutoFillComplete }: Lin
           )
         })}
       </div>
+
+      {/* Unlink Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={unlinkConfirmModal.isOpen}
+        onClose={() => setUnlinkConfirmModal({ isOpen: false, referenceId: null })}
+        onConfirm={confirmUnlinkOutput}
+        title="Unlink Tool Output"
+        message="Are you sure you want to remove this tool output from the project?"
+        confirmText="Unlink"
+        cancelText="Cancel"
+        variant="default"
+      />
+
+      {/* Alert Modal */}
+      <AlertModal
+        isOpen={alertModal.isOpen}
+        onClose={() => setAlertModal({ isOpen: false, title: "", message: "", type: "info" })}
+        title={alertModal.title}
+        message={alertModal.message}
+        type={alertModal.type}
+      />
     </div>
   )
 }

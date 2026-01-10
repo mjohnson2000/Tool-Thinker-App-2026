@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { History, Trash2, ExternalLink, Calendar, Rocket, Lightbulb, ChevronDown, ChevronUp } from "lucide-react"
 import { supabase } from "@/lib/supabase/client"
+import { ConfirmationModal, AlertModal } from "@/components/ui/modal"
 
 interface ToolOutput {
   id: string
@@ -28,6 +29,16 @@ export default function HistoryPage() {
   const [selectedTool, setSelectedTool] = useState<string | null>(null)
   const [creatingProject, setCreatingProject] = useState<string | null>(null)
   const [expandedDiscoveries, setExpandedDiscoveries] = useState<Set<string>>(new Set())
+  const [deleteConfirmModal, setDeleteConfirmModal] = useState<{ isOpen: boolean; outputId: string | null }>({
+    isOpen: false,
+    outputId: null,
+  })
+  const [alertModal, setAlertModal] = useState<{ isOpen: boolean; title: string; message: string; type?: "success" | "error" | "warning" | "info" }>({
+    isOpen: false,
+    title: "",
+    message: "",
+    type: "info",
+  })
 
   useEffect(() => {
     if (!authLoading && user) {
@@ -77,7 +88,11 @@ export default function HistoryPage() {
   }
 
   async function deleteOutput(id: string) {
-    if (!confirm("Are you sure you want to delete this output?")) return
+    setDeleteConfirmModal({ isOpen: true, outputId: id })
+  }
+
+  async function confirmDeleteOutput() {
+    if (!deleteConfirmModal.outputId) return
 
     try {
       // Get session token
@@ -88,7 +103,7 @@ export default function HistoryPage() {
         headers["Authorization"] = `Bearer ${session.access_token}`
       }
       
-      const response = await fetch(`/api/tool-outputs/${id}`, {
+      const response = await fetch(`/api/tool-outputs/${deleteConfirmModal.outputId}`, {
         method: "DELETE",
         headers,
       })
@@ -97,9 +112,22 @@ export default function HistoryPage() {
         throw new Error("Failed to delete output")
       }
 
-      setOutputs(outputs.filter((output) => output.id !== id))
+      setOutputs(outputs.filter((output) => output.id !== deleteConfirmModal.outputId))
+      setDeleteConfirmModal({ isOpen: false, outputId: null })
+      setAlertModal({
+        isOpen: true,
+        title: "Deleted",
+        message: "Output has been successfully deleted.",
+        type: "success",
+      })
     } catch (err: any) {
-      alert(err.message || "Failed to delete output")
+      setDeleteConfirmModal({ isOpen: false, outputId: null })
+      setAlertModal({
+        isOpen: true,
+        title: "Error",
+        message: err.message || "Failed to delete output",
+        type: "error",
+      })
     }
   }
 
@@ -585,11 +613,32 @@ export default function HistoryPage() {
                         <Trash2 className="w-4 h-4 mr-2" />
                         Delete
                       </Button>
-                    </div>
-                  </div>
-                </div>
-              )
-            })}
+        </div>
+      </div>
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={deleteConfirmModal.isOpen}
+        onClose={() => setDeleteConfirmModal({ isOpen: false, outputId: null })}
+        onConfirm={confirmDeleteOutput}
+        title="Delete Output"
+        message="Are you sure you want to delete this output? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="danger"
+      />
+
+      {/* Alert Modal */}
+      <AlertModal
+        isOpen={alertModal.isOpen}
+        onClose={() => setAlertModal({ isOpen: false, title: "", message: "", type: "info" })}
+        title={alertModal.title}
+        message={alertModal.message}
+        type={alertModal.type}
+      />
+    </div>
+  )
+})}
           </div>
         )}
       </div>

@@ -20,7 +20,7 @@ const envSchema = z.object({
   
   // Email service (Resend)
   RESEND_API_KEY: z.string().optional(),
-  RESEND_FROM_EMAIL: z.string().email().optional(),
+  RESEND_FROM_EMAIL: z.string().optional(), // Format: "Name <email@domain.com>" or just "email@domain.com"
 })
 
 // Validate environment variables (server-side only)

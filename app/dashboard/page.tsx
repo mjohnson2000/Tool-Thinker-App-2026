@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useMemo, useCallback } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/contexts/AuthContext"
@@ -29,6 +29,11 @@ import {
   Trash2
 } from "lucide-react"
 import { Input } from "@/components/ui/input"
+import { ConfirmationModal, AlertModal } from "@/components/ui/modal"
+import { Skeleton, SkeletonStatsCard, SkeletonProjectCard, SkeletonCard } from "@/components/ui/skeleton"
+import { Tooltip } from "@/components/ui/tooltip"
+import { useDebounce } from "@/hooks/useDebounce"
+import { RetryButton } from "@/components/ui/retry-button"
 
 interface Project {
   id: string
@@ -65,6 +70,19 @@ export default function DashboardPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState<string>("all")
   const [showFilters, setShowFilters] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const debouncedSearchQuery = useDebounce(searchQuery, 300)
+  const [deleteConfirmModal, setDeleteConfirmModal] = useState<{ isOpen: boolean; projectId: string | null; projectName: string }>({
+    isOpen: false,
+    projectId: null,
+    projectName: "",
+  })
+  const [alertModal, setAlertModal] = useState<{ isOpen: boolean; title: string; message: string; type?: "success" | "error" | "warning" | "info" }>({
+    isOpen: false,
+    title: "",
+    message: "",
+    type: "info",
+  })
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -74,7 +92,7 @@ export default function DashboardPage() {
     if (user) {
       loadDashboardData()
     }
-  }, [user, authLoading, router, searchQuery, statusFilter])
+  }, [user, authLoading, router, debouncedSearchQuery, statusFilter])
 
   async function loadDashboardData() {
     if (!user) return
@@ -91,7 +109,7 @@ export default function DashboardPage() {
 
       // Build query params for projects
       const projectParams = new URLSearchParams()
-      if (searchQuery) projectParams.set('search', searchQuery)
+      if (debouncedSearchQuery) projectParams.set('search', debouncedSearchQuery)
       if (statusFilter && statusFilter !== 'all') projectParams.set('status', statusFilter)
 
       // Load projects and outputs in parallel
@@ -103,17 +121,20 @@ export default function DashboardPage() {
       const projectsData = projectsRes.ok ? await projectsRes.json() : []
       const outputsData = outputsRes.ok ? await outputsRes.json() : { outputs: [] }
 
-      setProjects(Array.isArray(projectsData) ? projectsData : [])
+      // Store all projects (filtering happens client-side with useMemo)
+      const allProjects = Array.isArray(projectsData) ? projectsData : []
+      setProjects(allProjects)
       setRecentOutputs(outputsData.outputs || [])
 
       // Calculate stats
       setStats({
-        totalProjects: Array.isArray(projectsData) ? projectsData.length : 0,
+        totalProjects: allProjects.length,
         totalOutputs: outputsData.outputs?.length || 0,
         recentActivity: outputsData.outputs?.length || 0,
       })
     } catch (error) {
       console.error("Failed to load dashboard data:", error)
+      setError(error instanceof Error ? error.message : "Failed to load dashboard data")
     } finally {
       setLoading(false)
     }
@@ -187,15 +208,32 @@ export default function DashboardPage() {
         throw new Error(data.error || "Failed to delete project")
       }
       
+      // Close confirmation modal
+      setDeleteConfirmModal({ isOpen: false, projectId: null, projectName: "" })
+      
+      // Show success message
+      setAlertModal({
+        isOpen: true,
+        title: "Project Deleted",
+        message: "The project has been successfully deleted.",
+        type: "success",
+      })
+      
       // Reload dashboard data to reflect the deletion
       await loadDashboardData()
     } catch (error) {
       console.error("Failed to delete project:", error)
-      alert(error instanceof Error ? error.message : "Failed to delete project")
+      setDeleteConfirmModal({ isOpen: false, projectId: null, projectName: "" })
+      setAlertModal({
+        isOpen: true,
+        title: "Error",
+        message: error instanceof Error ? error.message : "Failed to delete project",
+        type: "error",
+      })
     }
   }
 
-  function formatDate(dateString: string) {
+  const formatDate = useCallback((dateString: string) => {
     const date = new Date(dateString)
     const now = new Date()
     const diffMs = now.getTime() - date.getTime()
@@ -208,13 +246,13 @@ export default function DashboardPage() {
     if (diffHours < 24) return `${diffHours}h ago`
     if (diffDays < 7) return `${diffDays}d ago`
     return date.toLocaleDateString()
-  }
+  }, [])
 
-  function getToolUrl(toolId: string) {
+  const getToolUrl = useCallback((toolId: string) => {
     return `/tools/${toolId}`
-  }
+  }, [])
 
-  function getToolIcon(toolId: string) {
+  const getToolIcon = useCallback((toolId: string) => {
     const iconMap: Record<string, any> = {
       "idea-discovery": Lightbulb,
       "business-plan-generator": FileText,
@@ -222,9 +260,9 @@ export default function DashboardPage() {
       "valuation-calculator": TrendingUp,
     }
     return iconMap[toolId] || FileText
-  }
+  }, [])
 
-  function getStatusColor(status: string) {
+  const getStatusColor = useCallback((status: string) => {
     switch (status) {
       case "draft":
         return "bg-gray-100 text-gray-700 border-gray-300"
@@ -241,9 +279,9 @@ export default function DashboardPage() {
       default:
         return "bg-gray-100 text-gray-700 border-gray-300"
     }
-  }
+  }, [])
 
-  function getStatusIcon(status: string) {
+  const getStatusIcon = useCallback((status: string) => {
     switch (status) {
       case "active":
         return <Play className="w-3 h-3" />
@@ -256,14 +294,57 @@ export default function DashboardPage() {
       default:
         return null
     }
-  }
+  }, [])
+
+  // Memoize filtered projects to avoid recalculating on every render
+  const filteredProjects = useMemo(() => {
+    let filtered = projects
+    
+    if (debouncedSearchQuery.trim()) {
+      filtered = filtered.filter((project) =>
+        project.name.toLowerCase().includes(debouncedSearchQuery.toLowerCase())
+      )
+    }
+    
+    if (statusFilter !== "all") {
+      filtered = filtered.filter((project) => project.status === statusFilter)
+    }
+    
+    return filtered
+  }, [projects, debouncedSearchQuery, statusFilter])
 
   if (authLoading || loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading dashboard...</p>
+      <div className="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-50 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Header Skeleton */}
+          <div className="mb-8">
+            <Skeleton className="h-10 w-64 mb-2" />
+            <Skeleton className="h-5 w-96" />
+          </div>
+
+          {/* Stats Cards Skeleton */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <SkeletonStatsCard />
+            <SkeletonStatsCard />
+            <SkeletonStatsCard />
+          </div>
+
+          {/* Content Grid Skeleton */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <SkeletonCard />
+            <SkeletonCard />
+          </div>
+
+          {/* Quick Actions Skeleton */}
+          <div className="mt-8">
+            <Skeleton className="h-8 w-32 mb-6" />
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {[1, 2, 3, 4].map((i) => (
+                <Skeleton key={i} className="h-24 rounded-lg" />
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     )
@@ -281,28 +362,6 @@ export default function DashboardPage() {
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">Dashboard</h1>
           <p className="text-gray-600">Welcome back! Here's what you've been working on.</p>
-        </div>
-
-        {/* Journey Map */}
-        <div className="mb-8">
-          <JourneyMap 
-            currentStage={
-              projects.length === 0 
-                ? "discovery" 
-                : projects.some((p: any) => p.status === "complete")
-                ? "documentation"
-                : "planning"
-            }
-            completedStages={
-              projects.length === 0 
-                ? [] 
-                : projects.some((p: any) => p.status === "complete")
-                ? ["discovery", "planning"]
-                : ["discovery"]
-            }
-            variant="compact"
-            showActions={true}
-          />
         </div>
 
         {/* Stats Cards */}
@@ -360,14 +419,18 @@ export default function DashboardPage() {
             </div>
 
             {recentOutputs.length === 0 ? (
-              <div className="text-center py-12">
-                <FileText className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500 mb-2">No saved outputs yet</p>
-                <p className="text-sm text-gray-400 mb-4">
-                  Start using tools to see your outputs here
+              <div className="text-center py-12 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg border-2 border-dashed border-gray-300">
+                <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center mx-auto mb-4">
+                  <FileText className="w-8 h-8 text-gray-400" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">No tool outputs yet</h3>
+                <p className="text-sm text-gray-600 mb-4 max-w-sm mx-auto">
+                  Start using tools to generate outputs that will appear here for easy access
                 </p>
                 <Link href="/tools">
-                  <Button>Explore Tools</Button>
+                  <Button className="bg-gradient-to-r from-gray-900 to-gray-800 hover:from-gray-800 hover:to-gray-700">
+                    Explore Tools
+                  </Button>
                 </Link>
               </div>
             ) : (
@@ -415,15 +478,18 @@ export default function DashboardPage() {
                   Structured planning workspaces for your startup ideas
                 </p>
               </div>
-              <Button 
-                id="new-project-button"
-                variant="outline" 
-                size="sm"
-                onClick={() => setShowNewProjectModal(true)}
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                New Project
-              </Button>
+              <Tooltip content="Create a new project to get started">
+                <Button 
+                  id="new-project-button"
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setShowNewProjectModal(true)}
+                  aria-label="Create new project"
+                >
+                  <Plus className="w-4 h-4 mr-2" aria-hidden="true" />
+                  New Project
+                </Button>
+              </Tooltip>
             </div>
 
             {/* Search and Filters */}
@@ -433,10 +499,18 @@ export default function DashboardPage() {
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                   <Input
                     type="text"
-                    placeholder="Search projects..."
+                    placeholder="Search projects... (⌘K)"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-10 border-2 border-gray-200 focus:border-gray-900"
+                    aria-label="Search projects"
+                    onKeyDown={(e) => {
+                      // Cmd+K or Ctrl+K to focus search
+                      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+                        e.preventDefault()
+                        e.currentTarget.focus()
+                      }
+                    }}
                   />
                 </div>
                 <Button
@@ -472,22 +546,30 @@ export default function DashboardPage() {
             </div>
 
             {projects.length === 0 ? (
-              <div className="text-center py-12">
-                <FolderOpen className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500 mb-2 font-semibold">No projects yet</p>
-                <p className="text-sm text-gray-400 mb-2 max-w-md mx-auto">
-                  Create a project to get guided, step-by-step help building your startup plan using proven frameworks (JTBD, Value Prop, Business Model).
-                </p>
-                <p className="text-xs text-gray-400 mb-4">
-                  Projects help you structure your thinking and track progress from idea to launch.
-                </p>
-                <Button onClick={() => setShowNewProjectModal(true)}>
-                  Create Your First Project
-                </Button>
+              <div className="text-center py-16 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl border-2 border-dashed border-gray-300">
+                <div className="max-w-md mx-auto">
+                  <div className="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center mx-auto mb-6">
+                    <FolderOpen className="w-10 h-10 text-gray-400" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-3">Start Your First Project</h3>
+                  <p className="text-gray-600 mb-4 leading-relaxed">
+                    Create a project to get guided, step-by-step help building your startup plan using proven frameworks (JTBD, Value Prop, Business Model).
+                  </p>
+                  <p className="text-sm text-gray-500 mb-6">
+                    Projects help you structure your thinking and track progress from idea to launch.
+                  </p>
+                  <Button 
+                    onClick={() => setShowNewProjectModal(true)}
+                    className="bg-gradient-to-r from-gray-900 to-gray-800 hover:from-gray-800 hover:to-gray-700 text-white px-8 py-3 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all"
+                  >
+                    <Plus className="w-5 h-5 mr-2 inline" />
+                    Create Your First Project
+                  </Button>
+                </div>
               </div>
             ) : (
               <div className="space-y-4">
-                {projects.slice(0, 10).map((project: any) => (
+                {filteredProjects.slice(0, 10).map((project: any) => (
                   <div
                     key={project.id}
                     className="group p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition border border-gray-200"
@@ -530,14 +612,17 @@ export default function DashboardPage() {
                         <button
                           onClick={(e) => {
                             e.stopPropagation()
-                            if (confirm(`Are you sure you want to delete "${project.name}"? This action cannot be undone.`)) {
-                              handleDeleteProject(project.id)
-                            }
+                            setDeleteConfirmModal({
+                              isOpen: true,
+                              projectId: project.id,
+                              projectName: project.name,
+                            })
                           }}
                           className="opacity-0 group-hover:opacity-100 transition-opacity p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded"
                           title="Delete project"
+                          aria-label={`Delete project ${project.name}`}
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-4 h-4" aria-hidden="true" />
                         </button>
                       </div>
                     </div>
@@ -584,6 +669,28 @@ export default function DashboardPage() {
               </div>
             </Link>
           </div>
+        </div>
+
+        {/* Journey Map */}
+        <div className="mt-8 mb-8">
+          <JourneyMap 
+            currentStage={
+              projects.length === 0 
+                ? "discovery" 
+                : projects.some((p: any) => p.status === "complete")
+                ? "documentation"
+                : "planning"
+            }
+            completedStages={
+              projects.length === 0 
+                ? [] 
+                : projects.some((p: any) => p.status === "complete")
+                ? ["discovery", "planning"]
+                : ["discovery"]
+            }
+            variant="compact"
+            showActions={true}
+          />
         </div>
       </div>
 
@@ -675,6 +782,31 @@ export default function DashboardPage() {
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={deleteConfirmModal.isOpen}
+        onClose={() => setDeleteConfirmModal({ isOpen: false, projectId: null, projectName: "" })}
+        onConfirm={() => {
+          if (deleteConfirmModal.projectId) {
+            handleDeleteProject(deleteConfirmModal.projectId)
+          }
+        }}
+        title="Delete Project"
+        message={`Are you sure you want to delete "${deleteConfirmModal.projectName}"? This action cannot be undone and will delete all associated data.`}
+        confirmText="Delete Project"
+        cancelText="Cancel"
+        variant="danger"
+      />
+
+      {/* Alert Modal */}
+      <AlertModal
+        isOpen={alertModal.isOpen}
+        onClose={() => setAlertModal({ isOpen: false, title: "", message: "", type: "info" })}
+        title={alertModal.title}
+        message={alertModal.message}
+        type={alertModal.type}
+      />
     </div>
   )
 }

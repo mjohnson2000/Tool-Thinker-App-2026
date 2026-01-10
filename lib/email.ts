@@ -126,3 +126,102 @@ This email was sent by Tool Thinker. If you didn't expect this invitation, you c
   }
 }
 
+interface PasswordResetEmailParams {
+  to: string
+  resetUrl: string
+}
+
+/**
+ * Send password reset email with Tool Thinker branding
+ */
+export async function sendPasswordResetEmail(params: PasswordResetEmailParams): Promise<{ success: boolean; error?: string }> {
+  // If no email service configured, log and return success (don't block reset)
+  if (!resend) {
+    console.log('📧 Email service not configured. Reset URL:', params.resetUrl)
+    return { success: true }
+  }
+
+  try {
+    const { data, error } = await resend.emails.send({
+      from: process.env.RESEND_FROM_EMAIL || 'Tool Thinker <noreply@toolthinker.com>',
+      to: params.to,
+      subject: 'Reset Your Tool Thinker Password',
+      html: `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Reset Your Password</title>
+          </head>
+          <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="background: linear-gradient(135deg, #1f2937 0%, #111827 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+              <h1 style="color: white; margin: 0; font-size: 28px;">Reset Your Password</h1>
+            </div>
+            
+            <div style="background: #ffffff; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 10px 10px;">
+              <p style="font-size: 16px; margin-top: 0;">
+                We received a request to reset your password for your Tool Thinker account.
+              </p>
+              
+              <div style="text-align: center; margin: 30px 0;">
+                <a href="${params.resetUrl}" 
+                   style="display: inline-block; background: linear-gradient(135deg, #1f2937 0%, #111827 100%); color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px;">
+                  Reset Password
+                </a>
+              </div>
+              
+              <p style="font-size: 14px; color: #6b7280; margin-top: 30px;">
+                Or copy and paste this link into your browser:<br>
+                <a href="${params.resetUrl}" style="color: #1f2937; word-break: break-all;">${params.resetUrl}</a>
+              </p>
+              
+              <div style="background: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                <p style="font-size: 14px; color: #6b7280; margin: 0;">
+                  <strong>Didn't request this?</strong> If you didn't request a password reset, you can safely ignore this email. Your password will remain unchanged.
+                </p>
+              </div>
+              
+              <p style="font-size: 14px; color: #6b7280; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+                This password reset link will expire in 1 hour. For security reasons, please don't share this link with anyone.
+              </p>
+            </div>
+            
+            <div style="text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+              <p style="font-size: 12px; color: #9ca3af; margin: 0;">
+                This email was sent by Tool Thinker. If you have any questions, please contact our support team.
+              </p>
+            </div>
+          </body>
+        </html>
+      `,
+      text: `
+Reset Your Tool Thinker Password
+
+We received a request to reset your password for your Tool Thinker account.
+
+Reset your password by clicking this link:
+${params.resetUrl}
+
+Didn't request this? If you didn't request a password reset, you can safely ignore this email. Your password will remain unchanged.
+
+This password reset link will expire in 1 hour. For security reasons, please don't share this link with anyone.
+
+---
+This email was sent by Tool Thinker. If you have any questions, please contact our support team.
+      `.trim(),
+    })
+
+    if (error) {
+      console.error('Failed to send password reset email:', error)
+      return { success: false, error: error.message }
+    }
+
+    return { success: true }
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    console.error('Error sending password reset email:', error)
+    return { success: false, error: errorMessage }
+  }
+}
+

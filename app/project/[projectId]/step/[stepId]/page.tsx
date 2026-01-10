@@ -16,7 +16,9 @@ import { getFramework, getNextStep, getPreviousStep, FRAMEWORK_ORDER } from "@/l
 import { getToolRecommendations } from "@/lib/tool-guidance/mapping"
 import type { Framework } from "@/types/frameworks"
 import { DisclaimerBanner } from "@/components/DisclaimerBanner"
-import { CheckCircle2, Clock, CheckCircle, X } from "lucide-react"
+import { AlertModal } from "@/components/ui/modal"
+import { RetryButton } from "@/components/ui/retry-button"
+import { CheckCircle2, Clock, CheckCircle, X, Save, AlertCircle, Loader2 } from "lucide-react"
 
 export default function StepPage() {
   const params = useParams()
@@ -38,6 +40,12 @@ export default function StepPage() {
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle")
   const [lastSaved, setLastSaved] = useState<Date | null>(null)
   const [showCompletionBanner, setShowCompletionBanner] = useState(false)
+  const [alertModal, setAlertModal] = useState<{ isOpen: boolean; title: string; message: string; type?: "success" | "error" | "warning" | "info" }>({
+    isOpen: false,
+    title: "",
+    message: "",
+    type: "info",
+  })
 
   useEffect(() => {
     // Redirect if projectId is undefined
@@ -256,20 +264,31 @@ export default function StepPage() {
     if (!framework) return
     
     if (!projectId || projectId === "undefined") {
-      alert("Invalid project. Please create a project first.")
-      router.push("/tools/startup-plan-generator")
+      setAlertModal({
+        isOpen: true,
+        title: "Project Required",
+        message: "Invalid project. Please create a project first.",
+        type: "warning",
+      })
+      setTimeout(() => router.push("/tools/startup-plan-generator"), 2000)
       return
     }
 
     // Check completeness
     const completeness = framework.completeness(inputs)
     if (!completeness.ok) {
-      alert(`Please complete all required fields: ${completeness.missing.join(", ")}`)
+      setAlertModal({
+        isOpen: true,
+        title: "Incomplete Form",
+        message: `Please complete all required fields: ${completeness.missing.join(", ")}`,
+        type: "warning",
+      })
       return
     }
 
     setIsGenerating(true)
     setGeneratedText("")
+    setGenerationError(null)
 
     try {
       const res = await fetch("/api/ai/generate", {
@@ -317,7 +336,14 @@ export default function StepPage() {
       }
     } catch (error) {
       console.error("Generation error:", error)
-      alert("Failed to generate output. Please try again.")
+      const errorMessage = error instanceof Error ? error.message : "Failed to generate output. Please try again."
+      setGenerationError(errorMessage)
+      setAlertModal({
+        isOpen: true,
+        title: "Generation Failed",
+        message: errorMessage,
+        type: "error",
+      })
     } finally {
       setIsGenerating(false)
     }
@@ -471,8 +497,39 @@ export default function StepPage() {
           <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold">Inputs</h2>
-              <div className="text-sm text-gray-500">
-                {framework.questions.filter(q => inputs[q.id] && inputs[q.id].trim()).length} / {framework.questions.length} answered
+              <div className="flex items-center gap-3">
+                {/* Auto-Save Indicator */}
+                {saveStatus !== "idle" && (
+                  <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                    saveStatus === "saving" 
+                      ? "bg-blue-50 text-blue-700 border border-blue-200" 
+                      : saveStatus === "saved"
+                      ? "bg-green-50 text-green-700 border border-green-200"
+                      : "bg-red-50 text-red-700 border border-red-200"
+                  }`}>
+                    {saveStatus === "saving" && (
+                      <>
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                        <span>Saving...</span>
+                      </>
+                    )}
+                    {saveStatus === "saved" && (
+                      <>
+                        <CheckCircle2 className="w-3 h-3" />
+                        <span>Saved{lastSaved ? ` at ${lastSaved.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : ''}</span>
+                      </>
+                    )}
+                    {saveStatus === "error" && (
+                      <>
+                        <AlertCircle className="w-3 h-3" />
+                        <span>Save failed</span>
+                      </>
+                    )}
+                  </div>
+                )}
+                <div className="text-sm text-gray-500">
+                  {framework.questions.filter(q => inputs[q.id] && inputs[q.id].trim()).length} / {framework.questions.length} answered
+                </div>
               </div>
             </div>
             
@@ -519,6 +576,20 @@ export default function StepPage() {
 
         {/* Middle: Output */}
         <div className="lg:col-span-1 order-2">
+          {/* Generation Error with Retry */}
+          {generationError && !isGenerating && (
+            <div className="bg-red-50 border-2 border-red-200 rounded-lg p-6 mb-6">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <h3 className="text-sm font-semibold text-red-900 mb-1">Generation Failed</h3>
+                  <p className="text-sm text-red-700 mb-4">{generationError}</p>
+                  <RetryButton onRetry={generateOutput} isLoading={isGenerating} />
+                </div>
+              </div>
+            </div>
+          )}
+
           {isGenerating && generatedText && (
             <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
               <h2 className="text-lg font-semibold mb-4">Generating...</h2>
@@ -634,6 +705,15 @@ export default function StepPage() {
           </div>
         </div>
       </div>
+
+      {/* Alert Modal */}
+      <AlertModal
+        isOpen={alertModal.isOpen}
+        onClose={() => setAlertModal({ isOpen: false, title: "", message: "", type: "info" })}
+        title={alertModal.title}
+        message={alertModal.message}
+        type={alertModal.type}
+      />
     </StepShell>
   )
 }

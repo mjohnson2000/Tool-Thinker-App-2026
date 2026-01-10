@@ -119,8 +119,9 @@ export function Navigation() {
           {/* Mobile Menu Button */}
           <button
             type="button"
-            aria-label="Toggle menu"
+            aria-label="Toggle navigation menu"
             aria-expanded={isMenuOpen}
+            aria-controls="mobile-menu"
             className="md:hidden text-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-900 rounded-md p-1"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
           >
@@ -136,7 +137,7 @@ export function Navigation() {
 
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="md:hidden py-4 space-y-2 border-t border-gray-200 bg-white">
+          <div id="mobile-menu" className="md:hidden py-4 space-y-2 border-t border-gray-200 bg-white" role="menu">
             <Link 
               href="/" 
               onClick={handleLinkClick}

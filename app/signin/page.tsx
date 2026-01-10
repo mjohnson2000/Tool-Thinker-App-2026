@@ -12,6 +12,7 @@ export default function SignInPage() {
   const [password, setPassword] = useState("")
   const [isSignUp, setIsSignUp] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const { signIn, signUp, signInWithProvider } = useAuth()
   const router = useRouter()
@@ -48,14 +49,24 @@ export default function SignInPage() {
     }
   }
 
-  // Check for OAuth errors in URL
+  // Check for OAuth errors and password reset success in URL
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     const oauthError = params.get('error')
+    const passwordReset = params.get('password')
+    
     if (oauthError) {
       setError(oauthError)
       // Clean up URL
       window.history.replaceState({}, '', '/signin')
+    } else if (passwordReset === 'reset') {
+      // Show success message for password reset
+      setError(null)
+      setSuccess("Your password has been reset successfully! You can now sign in with your new password.")
+      // Clean up URL
+      window.history.replaceState({}, '', '/signin')
+      // Clear success message after 5 seconds
+      setTimeout(() => setSuccess(null), 5000)
     }
   }, [])
 
@@ -77,6 +88,12 @@ export default function SignInPage() {
           {error && (
             <div className="mb-6 p-4 bg-red-50 border-2 border-red-200 rounded-xl">
               <p className="text-red-800 text-sm font-medium">{error}</p>
+            </div>
+          )}
+
+          {success && (
+            <div className="mb-6 p-4 bg-green-50 border-2 border-green-200 rounded-xl">
+              <p className="text-green-800 text-sm font-medium">{success}</p>
             </div>
           )}
 
